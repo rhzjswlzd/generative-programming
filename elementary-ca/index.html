@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elementary Cellular Automata | 初等元胞自动机</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .rule-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 16px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #0a0a0a;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,255,136,0.3);
+        }
+        .presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .preset-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .preset-btn:hover {
+            background: rgba(0,255,136,0.2);
+        }
+        canvas {
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .rule-display {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .rule-case {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: #888;
+        }
+        .rule-pattern {
+            display: flex;
+            gap: 1px;
+            margin-bottom: 3px;
+        }
+        .rule-cell {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #333;
+        }
+        .rule-cell.on {
+            background: #00ff88;
+        }
+        .rule-cell.off {
+            background: #1a1a1a;
+        }
+        .rule-result {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #333;
+            margin-top: 3px;
+        }
+        .info {
+            max-width: 600px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .info h3 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Elementary Cellular Automata</h1>
+    <p class="subtitle">初等元胞自动机 — 256 rules, infinite patterns | 256条规则，无限图案</p>
+    
+    <div class="controls">
+        <div class="rule-selector">
+            <label>Rule | 规则:</label>
+            <input type="number" id="ruleInput" min="0" max="255" value="110">
+        </div>
+        <button class="btn-primary" id="generate">Generate | 生成</button>
+        <button class="btn-secondary" id="random">🎲 Random | 随机规则</button>
+    </div>
+    
+    <div class="presets">
+        <button class="btn-secondary preset-btn" data-rule="30">Rule 30 (Chaos)</button>
+        <button class="btn-secondary preset-btn" data-rule="90">Rule 90 (Sierpiński)</button>
+        <button class="btn-secondary preset-btn" data-rule="110">Rule 110 (Turing Complete)</button>
+        <button class="btn-secondary preset-btn" data-rule="184">Rule 184 (Traffic)</button>
+        <button class="btn-secondary preset-btn" data-rule="250">Rule 250 (Growth)</button>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+    
+    <div class="rule-display" id="ruleDisplay"></div>
+    
+    <div class="info">
+        <h3>About | 关于</h3>
+        <p>
+            <strong>What | 简介:</strong> Stephen Wolfram's elementary cellular automata use 8 rules based on 3-cell neighborhoods.<br>
+            Stephen Wolfram 的初等元胞自动机基于3格邻域的8条规则。<br><br>
+            <strong>Rule 110 | 规则110:</strong> Proven to be Turing complete — a simple rule that can compute anything!<br>
+            已被证明是图灵完备的——一条简单规则可以计算任何东西！<br><br>
+            <strong>Rule 30 | 规则30:</strong> Produces chaotic, random-like patterns. Used for random number generation.<br>
+            产生混沌、类随机图案。曾用于随机数生成。
+        </p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const CELL_SIZE = 3;
+        const COLS = 300;
+        const ROWS = 200;
+        
+        canvas.width = COLS * CELL_SIZE;
+        canvas.height = ROWS * CELL_SIZE;
+        
+        function getRuleBits(ruleNumber) {
+            const bits = [];
+            for (let i = 0; i < 8; i++) {
+                bits.push((ruleNumber >> i) & 1);
+            }
+            return bits;
+        }
+        
+        function displayRule(ruleNumber) {
+            const bits = getRuleBits(ruleNumber);
+            const container = document.getElementById('ruleDisplay');
+            container.innerHTML = '';
+            
+            for (let i = 7; i >= 0; i--) {
+                const pattern = i.toString(2).padStart(3, '0');
+                const result = bits[i];
+                
+                const caseDiv = document.createElement('div');
+                caseDiv.className = 'rule-case';
+                
+                const patternDiv = document.createElement('div');
+                patternDiv.className = 'rule-pattern';
+                
+                for (let j = 0; j < 3; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'rule-cell ' + (pattern[j] === '1' ? 'on' : 'off');
+                    patternDiv.appendChild(cell);
+                }
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'rule-result ' + (result ? 'on' : 'off');
+                
+                const label = document.createElement('span');
+                label.textContent = `${i}→${result}`;
+                
+                caseDiv.appendChild(patternDiv);
+                caseDiv.appendChild(resultDiv);
+                caseDiv.appendChild(label);
+                container.appendChild(caseDiv);
+            }
+        }
+        
+        function generate(ruleNumber) {
+            const ruleBits = getRuleBits(ruleNumber);
+            
+            // Initialize first row with single cell in center
+            let row = Array(COLS).fill(0);
+            row[Math.floor(COLS / 2)] = 1;
+            
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Generate and draw each row
+            for (let y = 0; y < ROWS; y++) {
+                // Draw current row
+                for (let x = 0; x < COLS; x++) {
+                    if (row[x]) {
+                        const gradient = ctx.createLinearGradient(
+                            x * CELL_SIZE, y * CELL_SIZE,
+                            x * CELL_SIZE, (y + 1) * CELL_SIZE
+                        );
+                        const hue = (y / ROWS) * 60 + 140; // Green to cyan
+                        gradient.addColorStop(0, `hsl(${hue}, 100%, 60%)`);
+                        gradient.addColorStop(1, `hsl(${hue + 20}, 100%, 40%)`);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+                }
+                
+                // Calculate next row
+                const newRow = Array(COLS).fill(0);
+                for (let x = 0; x < COLS; x++) {
+                    const left = row[(x - 1 + COLS) % COLS];
+                    const center = row[x];
+                    const right = row[(x + 1) % COLS];
+                    const pattern = (left << 2) | (center << 1) | right;
+                    newRow[x] = ruleBits[pattern];
+                }
+                row = newRow;
+            }
+            
+            displayRule(ruleNumber);
+        }
+        
+        document.getElementById('generate').addEventListener('click', function() {
+            const rule = parseInt(document.getElementById('ruleInput').value) || 0;
+            generate(Math.max(0, Math.min(255, rule)));
+        });
+        
+        document.getElementById('random').addEventListener('click', function() {
+            const rule = Math.floor(Math.random() * 256);
+            document.getElementById('ruleInput').value = rule;
+            generate(rule);
+        });
+        
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rule = parseInt(this.dataset.rule);
+                document.getElementById('ruleInput').value = rule;
+                generate(rule);
+            });
+        });
+        
+        // Initialize with Rule 110
+        generate(110);
+    </script>
+</body>
+</html>
