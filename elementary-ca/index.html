@@ -1,191 +1,310 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elementary Cellular Automata | 初等元胞自动机</title>
     <style>
+        :root {
+            --bg-base: #1c1c1e;
+            --bg-surface: #252528;
+            --bg-elevated: #2c2c30;
+            --text-primary: #d8d8dc;
+            --text-secondary: #a0a0a6;
+            --text-muted: #6c6c72;
+            --accent: #8a9fb5;
+            --accent-hover: #9cb0c4;
+            --border: #363638;
+            --cell-on: #7da688;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            font-family: 'Inter', 'SF Pro Display', 'PingFang SC', -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: #fff;
+            padding: 48px 24px;
         }
+        
+        .container {
+            max-width: 960px;
+            width: 100%;
+        }
+        
+        header {
+            margin-bottom: 32px;
+        }
+        
         h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            background: linear-gradient(90deg, #00ff88, #00d4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin-bottom: 6px;
         }
+        
         .subtitle {
-            color: #888;
-            margin-bottom: 20px;
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
+        
         .controls {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
-            justify-content: center;
             align-items: center;
         }
-        .rule-selector {
+        
+        .rule-input {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
+        
+        .rule-input label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
         input[type="number"] {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
             width: 80px;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            font-size: 16px;
+            font-size: 0.9rem;
             text-align: center;
         }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
         button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 0.9rem;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            transition: background 0.15s ease-out;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #00ff88, #00d4ff);
-            color: #0a0a0a;
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0,255,136,0.3);
+            background: var(--bg-elevated);
         }
+        
+        button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-base);
+        }
+        
+        button.primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        
         .presets {
             display: flex;
             gap: 8px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 15px;
         }
+        
         .preset-btn {
             padding: 6px 12px;
-            font-size: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem;
+            background: var(--bg-elevated);
+            border-color: transparent;
         }
+        
         .preset-btn:hover {
-            background: rgba(0,255,136,0.2);
+            border-color: var(--border);
         }
+        
+        .canvas-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: inline-block;
+        }
+        
         canvas {
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: block;
+            border-radius: var(--radius-sm);
         }
+        
         .rule-display {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             display: flex;
-            gap: 10px;
+            gap: 16px;
             flex-wrap: wrap;
             justify-content: center;
         }
+        
         .rule-case {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 10px;
-            color: #888;
+            font-size: 0.75rem;
+            color: var(--text-muted);
         }
+        
         .rule-pattern {
             display: flex;
-            gap: 1px;
-            margin-bottom: 3px;
+            gap: 2px;
+            margin-bottom: 4px;
         }
+        
         .rule-cell {
-            width: 12px;
-            height: 12px;
-            border: 1px solid #333;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
         }
+        
         .rule-cell.on {
-            background: #00ff88;
+            background: var(--cell-on);
+            border-color: var(--cell-on);
         }
+        
         .rule-cell.off {
-            background: #1a1a1a;
+            background: var(--bg-base);
         }
+        
         .rule-result {
-            width: 12px;
-            height: 12px;
-            border: 1px solid #333;
-            margin-top: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            margin-top: 4px;
+            border: 1px solid var(--border);
         }
+        
+        .rule-result.on {
+            background: var(--cell-on);
+            border-color: var(--cell-on);
+        }
+        
+        .rule-result.off {
+            background: var(--bg-base);
+        }
+        
         .info {
-            max-width: 600px;
-            margin-top: 20px;
+            margin-top: 32px;
             padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            max-width: 600px;
         }
-        .info h3 {
-            color: #00ff88;
+        
+        .info h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
             margin-bottom: 10px;
+        }
+        
+        .info p:last-child {
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 24px 16px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                gap: 8px;
+            }
+            
+            button {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+            
+            .presets {
+                gap: 6px;
+            }
+            
+            .preset-btn {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Elementary Cellular Automata</h1>
-    <p class="subtitle">初等元胞自动机 — 256 rules, infinite patterns | 256条规则，无限图案</p>
-    
-    <div class="controls">
-        <div class="rule-selector">
-            <label>Rule | 规则:</label>
-            <input type="number" id="ruleInput" min="0" max="255" value="110">
+    <div class="container">
+        <header>
+            <h1>📐 Elementary Cellular Automata</h1>
+            <p class="subtitle">初等元胞自动机 — Wolfram 的 256 条规则</p>
+        </header>
+        
+        <div class="controls">
+            <div class="rule-input">
+                <label>规则</label>
+                <input type="number" id="ruleInput" min="0" max="255" value="110">
+            </div>
+            <button class="primary" id="generate">生成</button>
+            <button id="random">⚄ 随机规则</button>
         </div>
-        <button class="btn-primary" id="generate">Generate | 生成</button>
-        <button class="btn-secondary" id="random">🎲 Random | 随机规则</button>
-    </div>
-    
-    <div class="presets">
-        <button class="btn-secondary preset-btn" data-rule="30">Rule 30 (Chaos)</button>
-        <button class="btn-secondary preset-btn" data-rule="90">Rule 90 (Sierpiński)</button>
-        <button class="btn-secondary preset-btn" data-rule="110">Rule 110 (Turing Complete)</button>
-        <button class="btn-secondary preset-btn" data-rule="184">Rule 184 (Traffic)</button>
-        <button class="btn-secondary preset-btn" data-rule="250">Rule 250 (Growth)</button>
-    </div>
-    
-    <canvas id="canvas"></canvas>
-    
-    <div class="rule-display" id="ruleDisplay"></div>
-    
-    <div class="info">
-        <h3>About | 关于</h3>
-        <p>
-            <strong>What | 简介:</strong> Stephen Wolfram's elementary cellular automata use 8 rules based on 3-cell neighborhoods.<br>
-            Stephen Wolfram 的初等元胞自动机基于3格邻域的8条规则。<br><br>
-            <strong>Rule 110 | 规则110:</strong> Proven to be Turing complete — a simple rule that can compute anything!<br>
-            已被证明是图灵完备的——一条简单规则可以计算任何东西！<br><br>
-            <strong>Rule 30 | 规则30:</strong> Produces chaotic, random-like patterns. Used for random number generation.<br>
-            产生混沌、类随机图案。曾用于随机数生成。
-        </p>
+        
+        <div class="presets">
+            <button class="preset-btn" data-rule="30">Rule 30</button>
+            <button class="preset-btn" data-rule="90">Rule 90</button>
+            <button class="preset-btn" data-rule="110">Rule 110</button>
+            <button class="preset-btn" data-rule="184">Rule 184</button>
+            <button class="preset-btn" data-rule="250">Rule 250</button>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div class="rule-display" id="ruleDisplay"></div>
+        
+        <div class="info">
+            <h2>📖 说明</h2>
+            <p>
+                Stephen Wolfram 定义的初等元胞自动机，基于 3 格邻域产生 8 种情况，
+                每种情况对应 0 或 1，共有 2⁸ = 256 条规则。
+            </p>
+            <p>
+                <strong>Rule 110</strong> 已被证明是图灵完备的。
+                <strong>Rule 30</strong> 产生类随机图案，曾用于随机数生成。
+            </p>
+        </div>
     </div>
 
     <script>
@@ -198,6 +317,11 @@
         
         canvas.width = COLS * CELL_SIZE;
         canvas.height = ROWS * CELL_SIZE;
+        
+        const colors = {
+            bg: '#1c1c1e',
+            cell: '#7da688'
+        };
         
         function getRuleBits(ruleNumber) {
             const bits = [];
@@ -232,7 +356,7 @@
                 resultDiv.className = 'rule-result ' + (result ? 'on' : 'off');
                 
                 const label = document.createElement('span');
-                label.textContent = `${i}→${result}`;
+                label.textContent = `${i} → ${result}`;
                 
                 caseDiv.appendChild(patternDiv);
                 caseDiv.appendChild(resultDiv);
@@ -244,31 +368,21 @@
         function generate(ruleNumber) {
             const ruleBits = getRuleBits(ruleNumber);
             
-            // Initialize first row with single cell in center
             let row = Array(COLS).fill(0);
             row[Math.floor(COLS / 2)] = 1;
             
-            ctx.fillStyle = '#0a0a0a';
+            ctx.fillStyle = colors.bg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Generate and draw each row
+            ctx.fillStyle = colors.cell;
+            
             for (let y = 0; y < ROWS; y++) {
-                // Draw current row
                 for (let x = 0; x < COLS; x++) {
                     if (row[x]) {
-                        const gradient = ctx.createLinearGradient(
-                            x * CELL_SIZE, y * CELL_SIZE,
-                            x * CELL_SIZE, (y + 1) * CELL_SIZE
-                        );
-                        const hue = (y / ROWS) * 60 + 140; // Green to cyan
-                        gradient.addColorStop(0, `hsl(${hue}, 100%, 60%)`);
-                        gradient.addColorStop(1, `hsl(${hue + 20}, 100%, 40%)`);
-                        ctx.fillStyle = gradient;
                         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
                     }
                 }
                 
-                // Calculate next row
                 const newRow = Array(COLS).fill(0);
                 for (let x = 0; x < COLS; x++) {
                     const left = row[(x - 1 + COLS) % COLS];
@@ -302,7 +416,6 @@
             });
         });
         
-        // Initialize with Rule 110
         generate(110);
     </script>
 </body>

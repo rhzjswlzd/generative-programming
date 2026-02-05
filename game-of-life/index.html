@@ -1,116 +1,233 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conway's Game of Life | 康威生命游戏</title>
     <style>
+        :root {
+            --bg-base: #1c1c1e;
+            --bg-surface: #252528;
+            --bg-elevated: #2c2c30;
+            --text-primary: #d8d8dc;
+            --text-secondary: #a0a0a6;
+            --text-muted: #6c6c72;
+            --accent: #8a9fb5;
+            --accent-hover: #9cb0c4;
+            --border: #363638;
+            --cell-alive: #7da688;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Inter', 'SF Pro Display', 'PingFang SC', -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: #fff;
+            padding: 48px 24px;
         }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        header {
+            margin-bottom: 32px;
+        }
+        
         h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            background: linear-gradient(90deg, #00d4ff, #7b2fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin-bottom: 6px;
         }
+        
         .subtitle {
-            color: #888;
-            margin-bottom: 20px;
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
+        
         .controls {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            justify-content: center;
+            align-items: center;
         }
+        
         button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 0.9rem;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            transition: background 0.15s ease-out;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #00d4ff, #7b2fff);
-            color: white;
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0,212,255,0.3);
+            background: var(--bg-elevated);
         }
+        
+        button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-base);
+        }
+        
+        button.primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        
+        .canvas-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: inline-block;
+        }
+        
         canvas {
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: block;
+            border-radius: var(--radius-sm);
             cursor: crosshair;
         }
+        
         .stats {
-            margin-top: 15px;
-            color: #888;
+            margin-top: 16px;
+            color: var(--text-secondary);
             font-size: 0.85rem;
+            display: flex;
+            gap: 24px;
         }
+        
         .info {
-            max-width: 600px;
-            margin-top: 20px;
+            margin-top: 32px;
             padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            max-width: 600px;
         }
-        .info h3 {
-            color: #00d4ff;
+        
+        .info h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
             margin-bottom: 10px;
+        }
+        
+        .info p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .rules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .rule-card {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .rule-card .label {
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
+        .rule-card .value {
+            color: var(--text-primary);
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 24px 16px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                gap: 8px;
+            }
+            
+            button {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+            
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Conway's Game of Life</h1>
-    <p class="subtitle">康威生命游戏 — Click to draw, watch life emerge | 点击绘制，观察生命涌现</p>
-    
-    <div class="controls">
-        <button class="btn-primary" id="startStop">▶ Start | 开始</button>
-        <button class="btn-secondary" id="step">⏭ Step | 单步</button>
-        <button class="btn-secondary" id="random">🎲 Random | 随机</button>
-        <button class="btn-secondary" id="clear">🗑 Clear | 清空</button>
-    </div>
-    
-    <canvas id="canvas"></canvas>
-    
-    <p class="stats">Generation | 代数: <span id="generation">0</span> | Alive | 存活: <span id="alive">0</span></p>
-    
-    <div class="info">
-        <h3>Rules | 规则</h3>
-        <p>
-            <strong>Birth | 诞生:</strong> A dead cell with exactly 3 neighbors becomes alive.<br>
-            死细胞有恰好3个邻居时复活。<br><br>
-            <strong>Survival | 存活:</strong> A live cell with 2-3 neighbors survives.<br>
-            活细胞有2-3个邻居时存活。<br><br>
-            <strong>Death | 死亡:</strong> All other live cells die.<br>
-            其他活细胞死亡。
-        </p>
+    <div class="container">
+        <header>
+            <h1>🧬 Conway's Game of Life</h1>
+            <p class="subtitle">康威生命游戏 — 点击绘制细胞，观察生命演化</p>
+        </header>
+        
+        <div class="controls">
+            <button class="primary" id="startStop">▶ 开始</button>
+            <button id="step">⏭ 单步</button>
+            <button id="random">⚄ 随机</button>
+            <button id="clear">✕ 清空</button>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div class="stats">
+            <span>代数 <strong id="generation">0</strong></span>
+            <span>存活 <strong id="alive">0</strong></span>
+        </div>
+        
+        <div class="info">
+            <h2>📖 规则</h2>
+            <p>每个细胞根据周围 8 个邻居的状态决定下一代的生死：</p>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <div class="label">诞生</div>
+                    <div class="value">死细胞 + 3 邻居 → 复活</div>
+                </div>
+                <div class="rule-card">
+                    <div class="label">存活</div>
+                    <div class="value">活细胞 + 2~3 邻居 → 存活</div>
+                </div>
+                <div class="rule-card">
+                    <div class="label">死亡</div>
+                    <div class="value">其他情况 → 死亡</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -123,6 +240,11 @@
         
         canvas.width = COLS * CELL_SIZE;
         canvas.height = ROWS * CELL_SIZE;
+        
+        const colors = {
+            bg: '#1c1c1e',
+            cell: '#7da688'
+        };
         
         let grid = createGrid();
         let running = false;
@@ -169,24 +291,19 @@
         }
         
         function draw() {
-            ctx.fillStyle = '#1a1a2e';
+            ctx.fillStyle = colors.bg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            ctx.fillStyle = colors.cell;
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
                     if (grid[y][x]) {
-                        const gradient = ctx.createRadialGradient(
-                            x * CELL_SIZE + CELL_SIZE/2, 
-                            y * CELL_SIZE + CELL_SIZE/2, 
-                            0,
-                            x * CELL_SIZE + CELL_SIZE/2, 
-                            y * CELL_SIZE + CELL_SIZE/2, 
-                            CELL_SIZE
+                        ctx.fillRect(
+                            x * CELL_SIZE + 1, 
+                            y * CELL_SIZE + 1, 
+                            CELL_SIZE - 2, 
+                            CELL_SIZE - 2
                         );
-                        gradient.addColorStop(0, '#00d4ff');
-                        gradient.addColorStop(1, '#7b2fff');
-                        ctx.fillStyle = gradient;
-                        ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
                     }
                 }
             }
@@ -202,7 +319,8 @@
         
         document.getElementById('startStop').addEventListener('click', function() {
             running = !running;
-            this.textContent = running ? '⏸ Pause | 暂停' : '▶ Start | 开始';
+            this.textContent = running ? '⏸ 暂停' : '▶ 开始';
+            this.classList.toggle('primary', !running);
             if (running) loop();
         });
         
@@ -219,6 +337,8 @@
             );
             generation = 0;
             document.getElementById('generation').textContent = 0;
+            let alive = grid.flat().reduce((a, b) => a + b, 0);
+            document.getElementById('alive').textContent = alive;
             draw();
         });
         
@@ -233,6 +353,7 @@
         let isDrawing = false;
         canvas.addEventListener('mousedown', (e) => { isDrawing = true; toggleCell(e); });
         canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseleave', () => isDrawing = false);
         canvas.addEventListener('mousemove', (e) => { if (isDrawing) toggleCell(e); });
         
         function toggleCell(e) {
@@ -241,12 +362,15 @@
             const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
             if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
                 grid[y][x] = 1;
+                let alive = grid.flat().reduce((a, b) => a + b, 0);
+                document.getElementById('alive').textContent = alive;
                 draw();
             }
         }
         
-        // Initialize with a glider
+        // 初始化一个滑翔机
         grid[1][2] = 1; grid[2][3] = 1; grid[3][1] = 1; grid[3][2] = 1; grid[3][3] = 1;
+        document.getElementById('alive').textContent = 5;
         draw();
     </script>
 </body>
