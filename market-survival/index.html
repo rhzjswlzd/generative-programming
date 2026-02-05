@@ -543,6 +543,7 @@
                         <button class="btn quick-btn" data-value="100">全仓</button>
                     </div>
                     <button class="btn primary next-round-btn" id="nextRoundBtn">▶ 下一轮</button>
+                    <button class="btn secondary" id="exitBtn" style="width: 100%; margin-top: 8px; border: 1px dashed var(--border);">🏃 提前离场 (锁定收益并跑完全程)</button>
                 </div>
                 
                 <div class="leaderboard">
@@ -1230,6 +1231,37 @@
             }
             document.getElementById('playerComment').textContent = comment;
         }
+
+        async function exitGameEarly() {
+            if (gameState.isAnimating) return;
+            if (!confirm('确定要提前离场吗？你后续的仓位将保持为0，系统将自动模拟完剩余天数并直接显示结果。')) return;
+            
+            gameState.isAnimating = true;
+            document.getElementById('nextRoundBtn').disabled = true;
+            document.getElementById('exitBtn').disabled = true;
+            
+            const player = gameState.players[0];
+            player.position = 0; // 离场仓位归零
+            
+            const startDay = gameState.currentDay;
+            const endDay = TOTAL_DAYS;
+            
+            // 快速模拟剩余天数
+            for (let day = startDay; day < endDay; day++) {
+                const dayData = gameState.marketData[day];
+                const effectivePrevDayData = day > 0 ? gameState.marketData[day - 1] : { close: 100 };
+                
+                gameState.players.forEach(p => {
+                    calculateDayPnL(p, dayData, effectivePrevDayData);
+                    if (!p.isPlayer) {
+                        updateBotDecision(p, dayData, effectivePrevDayData);
+                    }
+                });
+            }
+            
+            showEndScreen();
+            gameState.isAnimating = false;
+        }
         
         // ============ INIT ============
         function initGame() {
@@ -1265,6 +1297,7 @@
             
             document.getElementById('nextRoundBtn').disabled = false;
             document.getElementById('nextRoundBtn').textContent = '▶ 下一轮';
+            document.getElementById('exitBtn').disabled = false;
         }
         
         // Event listeners
@@ -1274,6 +1307,7 @@
             document.getElementById('startScreen').classList.add('active');
         });
         document.getElementById('nextRoundBtn').addEventListener('click', playRound);
+        document.getElementById('exitBtn').addEventListener('click', exitGameEarly);
         
         document.getElementById('positionSlider').addEventListener('input', (e) => {
             document.getElementById('positionDisplay').textContent = e.target.value + '%';
