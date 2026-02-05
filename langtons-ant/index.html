@@ -1,144 +1,246 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Langton's Ant | 兰顿蚂蚁</title>
     <style>
+        :root {
+            --bg-base: #1c1c1e;
+            --bg-surface: #252528;
+            --bg-elevated: #2c2c30;
+            --text-primary: #d8d8dc;
+            --text-secondary: #a0a0a6;
+            --text-muted: #6c6c72;
+            --accent: #8a9fb5;
+            --accent-hover: #9cb0c4;
+            --border: #363638;
+            --cell-on: #c4b48a;
+            --ant: #c49090;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a0a2e 100%);
+            font-family: 'Inter', 'SF Pro Display', 'PingFang SC', -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: #fff;
+            padding: 48px 24px;
         }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        header {
+            margin-bottom: 32px;
+        }
+        
         h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin-bottom: 6px;
         }
+        
         .subtitle {
-            color: #888;
-            margin-bottom: 20px;
+            color: var(--text-secondary);
             font-size: 0.9rem;
-            text-align: center;
         }
+        
         .controls {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            justify-content: center;
             align-items: center;
         }
+        
         button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 0.9rem;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            transition: background 0.15s ease-out;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
-            color: #1a0a2e;
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255,107,107,0.3);
+            background: var(--bg-elevated);
         }
+        
+        button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-base);
+        }
+        
+        button.primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        
         select {
-            padding: 10px 15px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            font-size: 14px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
         }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .canvas-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: inline-block;
+        }
+        
         canvas {
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: block;
+            border-radius: var(--radius-sm);
         }
+        
         .stats {
-            margin-top: 15px;
-            color: #888;
+            margin-top: 16px;
+            color: var(--text-secondary);
             font-size: 0.85rem;
         }
+        
         .info {
-            max-width: 600px;
-            margin-top: 20px;
+            margin-top: 32px;
             padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            max-width: 600px;
         }
-        .info h3 {
-            color: #ffd93d;
+        
+        .info h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
             margin-bottom: 10px;
         }
-        .highway-alert {
-            display: none;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
-            color: #1a0a2e;
-            border-radius: 8px;
-            font-weight: 600;
-            animation: pulse 1s infinite;
+        
+        .info p:last-child {
+            margin-bottom: 0;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        
+        .rule {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+        }
+        
+        .rule-item {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        
+        .rule-item span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        
+        .rule-item .white {
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+        }
+        
+        .rule-item .black {
+            background: var(--cell-on);
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 24px 16px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                gap: 8px;
+            }
+            
+            button, select {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>🐜 Langton's Ant</h1>
-    <p class="subtitle">兰顿蚂蚁 — Watch chaos turn into order | 观察混沌如何转变为秩序</p>
-    
-    <div class="controls">
-        <button class="btn-primary" id="startStop">▶ Start | 开始</button>
-        <button class="btn-secondary" id="reset">🔄 Reset | 重置</button>
-        <select id="speed">
-            <option value="1">Speed: 1x</option>
-            <option value="10" selected>Speed: 10x</option>
-            <option value="50">Speed: 50x</option>
-            <option value="100">Speed: 100x</option>
-        </select>
-    </div>
-    
-    <canvas id="canvas"></canvas>
-    
-    <p class="stats">Steps | 步数: <span id="steps">0</span></p>
-    <div class="highway-alert" id="highway">🛣️ Highway emerged! | 高速公路出现了！</div>
-    
-    <div class="info">
-        <h3>Rules | 规则</h3>
-        <p>
-            <strong>On white | 在白格:</strong> Turn right 90°, flip to black, move forward.<br>
-            右转90°，变黑，前进。<br><br>
-            <strong>On black | 在黑格:</strong> Turn left 90°, flip to white, move forward.<br>
-            左转90°，变白，前进。<br><br>
-            <strong>Emergence | 涌现:</strong> After ~10,000 steps, a "highway" pattern emerges!<br>
-            约10,000步后，"高速公路"图案会涌现！
-        </p>
+    <div class="container">
+        <header>
+            <h1>🐜 Langton's Ant</h1>
+            <p class="subtitle">兰顿蚂蚁 — 二维图灵机，简单规则产生复杂行为</p>
+        </header>
+        
+        <div class="controls">
+            <button class="primary" id="startStop">▶ 开始</button>
+            <button id="reset">↺ 重置</button>
+            <select id="speed">
+                <option value="1">速度 1x</option>
+                <option value="10" selected>速度 10x</option>
+                <option value="50">速度 50x</option>
+                <option value="100">速度 100x</option>
+            </select>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <p class="stats">步数 <span id="steps">0</span></p>
+        
+        <div class="info">
+            <h2>📖 规则</h2>
+            <p>蚂蚁按照以下规则移动，每一步执行一次：</p>
+            <div class="rule">
+                <div class="rule-item">
+                    <span class="white"></span>白格：右转 90°，变黑，前进
+                </div>
+                <div class="rule-item">
+                    <span class="black"></span>黑格：左转 90°，变白，前进
+                </div>
+            </div>
+            <p style="margin-top: 16px; color: var(--text-muted);">
+                约 10,000 步后会出现规律性的对角线移动模式。
+            </p>
+        </div>
     </div>
 
     <script>
@@ -152,11 +254,16 @@
         canvas.width = COLS * CELL_SIZE;
         canvas.height = ROWS * CELL_SIZE;
         
-        // Directions: 0=up, 1=right, 2=down, 3=left
         const DX = [0, 1, 0, -1];
         const DY = [-1, 0, 1, 0];
         
         let grid, ant, running, steps, animationId;
+        
+        const colors = {
+            bg: '#1c1c1e',
+            cell: '#c4b48a',
+            ant: '#c49090'
+        };
         
         function init() {
             grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
@@ -166,51 +273,40 @@
                 dir: 0
             };
             steps = 0;
-            document.getElementById('steps').textContent = 0;
-            document.getElementById('highway').style.display = 'none';
+            document.getElementById('steps').textContent = '0';
         }
         
         function step() {
             const { x, y, dir } = ant;
             
             if (grid[y][x] === 0) {
-                // White: turn right
                 ant.dir = (dir + 1) % 4;
                 grid[y][x] = 1;
             } else {
-                // Black: turn left
                 ant.dir = (dir + 3) % 4;
                 grid[y][x] = 0;
             }
             
-            // Move forward
             ant.x = (ant.x + DX[ant.dir] + COLS) % COLS;
             ant.y = (ant.y + DY[ant.dir] + ROWS) % ROWS;
             
             steps++;
-            
-            // Check for highway emergence
-            if (steps === 10000) {
-                document.getElementById('highway').style.display = 'block';
-            }
         }
         
         function draw() {
-            ctx.fillStyle = '#1a0a2e';
+            ctx.fillStyle = colors.bg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw cells
+            ctx.fillStyle = colors.cell;
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
                     if (grid[y][x] === 1) {
-                        ctx.fillStyle = '#ffd93d';
                         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
                     }
                 }
             }
             
-            // Draw ant
-            ctx.fillStyle = '#ff6b6b';
+            ctx.fillStyle = colors.ant;
             ctx.beginPath();
             ctx.arc(
                 ant.x * CELL_SIZE + CELL_SIZE / 2,
@@ -237,13 +333,15 @@
         
         document.getElementById('startStop').addEventListener('click', function() {
             running = !running;
-            this.textContent = running ? '⏸ Pause | 暂停' : '▶ Start | 开始';
+            this.textContent = running ? '⏸ 暂停' : '▶ 开始';
+            this.classList.toggle('primary', !running);
             if (running) loop();
         });
         
         document.getElementById('reset').addEventListener('click', function() {
             running = false;
-            document.getElementById('startStop').textContent = '▶ Start | 开始';
+            document.getElementById('startStop').textContent = '▶ 开始';
+            document.getElementById('startStop').classList.add('primary');
             if (animationId) cancelAnimationFrame(animationId);
             init();
             draw();
