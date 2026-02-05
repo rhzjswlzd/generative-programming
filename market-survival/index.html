@@ -491,7 +491,7 @@
         <div class="game-main">
             <div class="left-panel">
                 <div class="chart-container">
-                    <div class="chart-title">📊 K线走势 | <span id="marketType">--</span></div>
+                    <div class="chart-title">📊 K线走势</div>
                     <canvas id="klineCanvas"></canvas>
                 </div>
                 <div class="grid-container">
@@ -1058,13 +1058,12 @@
             
             // 市场总结
             const marketSummaries = {
-                '真牛市': '这是一轮疯狂的牛市。多头狂欢，空仓者悔恨终生。',
-                '慢牛市': '市场稳步上行，耐心者获得回报，急躁者却在震荡中离场。',
-                '阴跌市': '这是一场残酷的阴跌。每次反弹都是陷阱，绝望笼罩全场。',
-                '过山车': '市场如过山车般剧烈震荡。无数人在高点入场，低点割肉。'
+                '真牛市': '这是一轮疯狂的【真牛市】。多头狂欢，空仓者悔恨终生。',
+                '慢牛市': '这是一轮温和的【慢牛市】。市场稳步上行，耐心者获得回报，急躁者却在震荡中离场。',
+                '阴跌市': '这是一场残酷的【阴跌市】。每次反弹都是陷阱，绝望笼罩全场。',
+                '过山车': '这是一轮剧烈的【过山车】行情。无数人在高点入场，低点割肉。'
             };
             document.getElementById('marketSummary').textContent = marketSummaries[gameState.marketType] || '';
-            document.getElementById('marketType').textContent = gameState.marketType;
             
             // 最终数据
             document.getElementById('finalAsset').textContent = `¥${player.capital.toFixed(0)}`;
@@ -1154,7 +1153,6 @@
             // 更新UI
             document.getElementById('displayName').textContent = gameState.playerName;
             document.getElementById('currentRound').textContent = 1;
-            document.getElementById('marketType').textContent = gameState.marketType;
             
             // 初始绘制
             drawKlineChart(0);
