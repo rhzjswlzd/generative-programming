@@ -1078,20 +1078,38 @@
             const losers = sorted.filter(p => !p.bankrupt).slice(-3).reverse();
             const bankrupts = sorted.filter(p => p.bankrupt);
             
-            document.getElementById('topWinners').innerHTML = winners.map((p, i) => `
-                <div class="ranking-item">
-                    <span>${['🥇','🥈','🥉'][i]} ${p.name}</span>
-                    <span style="color:var(--green-bright)">¥${p.capital.toFixed(0)}</span>
-                </div>
-            `).join('');
+            // 最大赢家分析
+            const topWinner = sorted[0];
+            const topWinnerReturn = ((topWinner.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100).toFixed(1);
+            const topWinnerStrategy = topWinner.isPlayer ? '玩家' : BOT_STRATEGIES[topWinner.strategy].desc;
             
+            document.getElementById('topWinners').innerHTML = winners.map((p, i) => {
+                const ret = ((p.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100).toFixed(1);
+                const strat = p.isPlayer ? '玩家' : BOT_STRATEGIES[p.strategy].desc;
+                return `
+                    <div class="ranking-item">
+                        <span>${['🥇','🥈','🥉'][i]} ${p.name} (${strat})</span>
+                        <span style="color:var(--green-bright)">¥${p.capital.toFixed(0)} (+${ret}%)</span>
+                    </div>
+                `;
+            }).join('') + `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">冠军 ${topWinner.name} 采用「${topWinnerStrategy}」策略，收益率 +${topWinnerReturn}%。</div>`;
+            
+            // 最惨输家分析
             const loserList = bankrupts.length > 0 ? bankrupts.slice(0, 3) : losers;
-            document.getElementById('topLosers').innerHTML = loserList.map(p => `
-                <div class="ranking-item">
-                    <span>💀 ${p.name}</span>
-                    <span style="color:var(--red-bright)">¥${p.capital.toFixed(0)}</span>
-                </div>
-            `).join('');
+            const worstLoser = bankrupts.length > 0 ? bankrupts[0] : sorted[sorted.length - 1];
+            const worstLoserReturn = ((worstLoser.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100).toFixed(1);
+            const worstLoserStrategy = worstLoser.isPlayer ? '玩家' : BOT_STRATEGIES[worstLoser.strategy].desc;
+            
+            document.getElementById('topLosers').innerHTML = loserList.map(p => {
+                const ret = ((p.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100).toFixed(1);
+                const strat = p.isPlayer ? '玩家' : BOT_STRATEGIES[p.strategy].desc;
+                return `
+                    <div class="ranking-item">
+                        <span>💀 ${p.name} (${strat})</span>
+                        <span style="color:var(--red-bright)">¥${p.capital.toFixed(0)} (${ret}%)</span>
+                    </div>
+                `;
+            }).join('') + `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${worstLoser.bankrupt ? '破产者' : '垫底'} ${worstLoser.name} 采用「${worstLoserStrategy}」策略${worstLoser.bankrupt ? '，血本无归' : '，亏损 ' + worstLoserReturn + '%'}。</div>`;
             
             // 玩家评语
             let comment;
@@ -1172,6 +1190,17 @@
         document.getElementById('playerName').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') initGame();
         });
+        
+        // 随机生成初始名字
+        function generateRandomPlayerName() {
+            const prefixes = ['玩家', '韭菜', '股民', '散户', '新手', '老手'];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const num = Math.floor(Math.random() * 900) + 100;
+            return `${prefix}_${num}`;
+        }
+        
+        // 页面加载时填入随机名字
+        document.getElementById('playerName').value = generateRandomPlayerName();
     </script>
 </body>
 </html>
