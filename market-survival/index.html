@@ -720,13 +720,21 @@
                 const prefix = BOT_NAME_PREFIXES[Math.floor(Math.random() * BOT_NAME_PREFIXES.length)];
                 const strategyKey = strategyKeys[Math.floor(Math.random() * strategyKeys.length)];
                 
+                // 每个 bot 有个性化参数，影响决策阈值
+                const personality = {
+                    aggression: 0.8 + Math.random() * 0.4,    // 0.8-1.2 激进程度
+                    threshold: 0.8 + Math.random() * 0.4,     // 0.8-1.2 触发阈值
+                    noise: 0.05 + Math.random() * 0.1         // 0.05-0.15 随机噪声
+                };
+                
                 players.push({
                     id: i,
                     name: `${prefix}_${String(i).padStart(3, '0')}`,
                     isPlayer: false,
                     capital: INITIAL_CAPITAL,
-                    position: strategyKey === 'HODLER' ? 1 : Math.random(),
+                    position: strategyKey === 'HODLER' ? (0.9 + Math.random() * 0.1) : Math.random(),
                     strategy: strategyKey,
+                    personality: personality,
                     bankrupt: false,
                     history: [INITIAL_CAPITAL]
                 });
@@ -740,34 +748,56 @@
             
             const returnRate = (bot.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL;
             const dayChange = prevDayData ? (dayData.close - prevDayData.close) / prevDayData.close : 0;
+            const p = bot.personality || { aggression: 1, threshold: 1, noise: 0.1 };
+            
+            // 添加个性化噪声
+            const noise = (Math.random() - 0.5) * p.noise;
             
             switch (bot.strategy) {
                 case 'HODLER':
-                    bot.position = 1; // 永远满仓
+                    // HODLer 也有微小波动，偶尔小幅调仓
+                    if (Math.random() < 0.05) {
+                        bot.position = Math.max(0.85, Math.min(1, bot.position + (Math.random() - 0.5) * 0.1));
+                    }
                     break;
                 case 'PANIC_SELLER':
-                    if (returnRate < -0.05) {
-                        bot.position = 0; // 亏损5%清仓
+                    // 不同人的恐慌阈值不同 (-3% ~ -7%)
+                    const panicThreshold = -0.05 * p.threshold;
+                    if (returnRate < panicThreshold) {
+                        bot.position = 0;
+                    } else {
+                        bot.position = Math.max(0, bot.position + noise);
                     }
                     break;
                 case 'MARTINGALE':
                     if (returnRate < 0) {
-                        bot.position = Math.min(1, bot.position + 0.2); // 亏损加仓
+                        // 加仓幅度因人而异
+                        bot.position = Math.min(1, bot.position + 0.2 * p.aggression + noise);
                     }
                     break;
                 case 'TREND_FOLLOWER':
-                    if (dayChange > 0.02) {
-                        bot.position = Math.min(1, bot.position + 0.3); // 追涨
-                    } else if (dayChange < -0.02) {
-                        bot.position = Math.max(0, bot.position - 0.3); // 杀跌
+                    // 追涨杀跌的敏感度因人而异
+                    const upThreshold = 0.02 * p.threshold;
+                    const downThreshold = -0.02 * p.threshold;
+                    if (dayChange > upThreshold) {
+                        bot.position = Math.min(1, bot.position + 0.3 * p.aggression + noise);
+                    } else if (dayChange < downThreshold) {
+                        bot.position = Math.max(0, bot.position - 0.3 * p.aggression + noise);
+                    } else {
+                        bot.position = Math.max(0, Math.min(1, bot.position + noise * 0.5));
                     }
                     break;
                 case 'RANDOM':
-                    if (Math.random() < 0.3) {
+                    if (Math.random() < 0.3 * p.aggression) {
                         bot.position = Math.random();
+                    } else {
+                        bot.position = Math.max(0, Math.min(1, bot.position + noise));
                     }
                     break;
             }
+            
+            // 确保仓位在合理范围
+            bot.position = Math.max(0, Math.min(1, bot.position));
         }
         
         function calculateDayPnL(player, dayData, prevDayData) {
