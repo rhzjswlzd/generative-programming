@@ -2,10 +2,6 @@
 
 **生成式编程游乐场**
 
-Exploring emergent beauty through code — from simple rules to complex behaviors.
-
-通过代码探索涌现之美——从简单规则到复杂行为。
-
 ---
 
 ## 🌟 Projects | 项目
@@ -16,7 +12,7 @@ The classic cellular automaton that demonstrates emergence from simple rules.
 经典的元胞自动机，展示简单规则如何产生复杂涌现行为。
 
 - **Rules | 规则**: Birth (3), Survive (2-3)
-- **Status | 状态**: 🚧 In Progress
+- **Status | 状态**: ✅ Done
 
 ### 2. Langton's Ant | 兰顿蚂蚁
 A two-dimensional Turing machine with emergent highway behavior.
@@ -24,7 +20,7 @@ A two-dimensional Turing machine with emergent highway behavior.
 二维图灵机，展示"高速公路"涌现现象。
 
 - **Rules | 规则**: Turn right on white, turn left on black, flip color
-- **Status | 状态**: 📋 Planned
+- **Status | 状态**: ✅ Done
 
 ### 3. Elementary Cellular Automata | 初等元胞自动机
 Wolfram's 256 one-dimensional rules, including the famous Rule 110.
@@ -32,7 +28,15 @@ Wolfram's 256 one-dimensional rules, including the famous Rule 110.
 Wolfram 的 256 种一维规则，包括著名的 Rule 110。
 
 - **Notable | 亮点**: Rule 30 (chaos), Rule 110 (Turing complete)
-- **Status | 状态**: 📋 Planned
+- **Status | 状态**: ✅ Done
+
+### 4. Market Survival | 股市生存游戏
+A stock market survival game with retro pixel aesthetics.
+
+复古像素风格的股市生存模拟游戏。
+
+- **Features | 特性**: Trading simulation, survival mechanics
+- **Status | 状态**: ✅ Done
 
 ---
 
