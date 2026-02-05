@@ -13,6 +13,7 @@ The classic cellular automaton that demonstrates emergence from simple rules.
 
 - **Rules | 规则**: Birth (3), Survive (2-3)
 - **Status | 状态**: ✅ Done
+- 🎮 **[Play Now | 立即游玩](https://rhzjswlzd.github.io/generative-programming/game-of-life/)**
 
 ### 2. Langton's Ant | 兰顿蚂蚁
 A two-dimensional Turing machine with emergent highway behavior.
@@ -21,6 +22,7 @@ A two-dimensional Turing machine with emergent highway behavior.
 
 - **Rules | 规则**: Turn right on white, turn left on black, flip color
 - **Status | 状态**: ✅ Done
+- 🎮 **[Play Now | 立即游玩](https://rhzjswlzd.github.io/generative-programming/langtons-ant/)**
 
 ### 3. Elementary Cellular Automata | 初等元胞自动机
 Wolfram's 256 one-dimensional rules, including the famous Rule 110.
@@ -29,6 +31,7 @@ Wolfram 的 256 种一维规则，包括著名的 Rule 110。
 
 - **Notable | 亮点**: Rule 30 (chaos), Rule 110 (Turing complete)
 - **Status | 状态**: ✅ Done
+- 🎮 **[Play Now | 立即游玩](https://rhzjswlzd.github.io/generative-programming/elementary-ca/)**
 
 ### 4. Market Survival | 股市生存游戏
 A stock market survival game with retro pixel aesthetics.
@@ -37,6 +40,7 @@ A stock market survival game with retro pixel aesthetics.
 
 - **Features | 特性**: Trading simulation, survival mechanics
 - **Status | 状态**: ✅ Done
+- 🎮 **[Play Now | 立即游玩](https://rhzjswlzd.github.io/generative-programming/market-survival/)**
 
 ---
 
