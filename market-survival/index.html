@@ -612,7 +612,10 @@
             BULL_RUN: { name: '真牛市', desc: '高波动，整体大幅向上', trend: 0.8, volatility: 0.06 },
             SLOW_BULL: { name: '慢牛市', desc: '低波动，稳步向上', trend: 0.3, volatility: 0.025 },
             SLOW_BLEED: { name: '阴跌市', desc: '低波动，持续向下，偶尔反弹', trend: -0.25, volatility: 0.03 },
-            ROLLERCOASTER: { name: '过山车', desc: '剧烈震荡，结局难料', trend: 0, volatility: 0.05, sine: true }
+            ROLLERCOASTER: { name: '过山车', desc: '剧烈震荡，结局难料', trend: 0, volatility: 0.05, sine: true },
+            BEAR_CRASH: { name: '熊市暴跌', desc: '快速崩盘，血流成河', trend: -0.7, volatility: 0.07, crash: true },
+            SIDEWAYS: { name: '横盘震荡', desc: '几乎不涨不跌，磨人心态', trend: 0, volatility: 0.015 },
+            V_RECOVERY: { name: 'V型反转', desc: '先跌后涨，考验信念', trend: 0, volatility: 0.04, vshape: true }
         };
         
         function generateMarket() {
@@ -635,6 +638,27 @@
                     // 最后10天可能暴跌
                     if (day > 50 && Math.random() < 0.3) {
                         change -= 0.04;
+                    }
+                } else if (type.crash) {
+                    // 熊市暴跌：前期小涨诱多，后期快速崩盘
+                    if (day < 15) {
+                        change = 0.01 + (Math.random() - 0.5) * 0.03; // 前期小涨
+                    } else if (day < 25) {
+                        change = -0.02 + (Math.random() - 0.5) * 0.04; // 开始下跌
+                    } else {
+                        change = -0.04 + (Math.random() - 0.3) * type.volatility; // 加速崩盘
+                    }
+                } else if (type.vshape) {
+                    // V型反转：前半段下跌，后半段上涨
+                    const midPoint = TOTAL_DAYS / 2;
+                    if (day < midPoint) {
+                        // 下跌阶段
+                        const downTrend = -0.5 / midPoint;
+                        change = downTrend + (Math.random() - 0.5) * type.volatility;
+                    } else {
+                        // 反转上涨阶段
+                        const upTrend = 0.7 / midPoint;
+                        change = upTrend + (Math.random() - 0.5) * type.volatility;
                     }
                 } else {
                     // 标准模式
@@ -1061,7 +1085,10 @@
                 '真牛市': '这是一轮疯狂的【真牛市】。多头狂欢，空仓者悔恨终生。',
                 '慢牛市': '这是一轮温和的【慢牛市】。市场稳步上行，耐心者获得回报，急躁者却在震荡中离场。',
                 '阴跌市': '这是一场残酷的【阴跌市】。每次反弹都是陷阱，绝望笼罩全场。',
-                '过山车': '这是一轮剧烈的【过山车】行情。无数人在高点入场，低点割肉。'
+                '过山车': '这是一轮剧烈的【过山车】行情。无数人在高点入场，低点割肉。',
+                '熊市暴跌': '这是一场惨烈的【熊市暴跌】。前期的小涨是诱多陷阱，随后市场崩盘，血流成河。',
+                '横盘震荡': '这是一轮漫长的【横盘震荡】。市场几乎不涨不跌，磨灭了所有人的耐心。',
+                'V型反转': '这是一轮经典的【V型反转】。前半程暴跌让人绝望，后半程反弹让坚持者翻盘。'
             };
             document.getElementById('marketSummary').textContent = marketSummaries[gameState.marketType] || '';
             
