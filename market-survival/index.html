@@ -609,8 +609,8 @@
         
         // ============ MARKET GENERATION ============
         const MARKET_TYPES = {
-            BULL_RUN: { name: '真牛市', desc: '高波动，整体大幅向上', trend: 0.8, volatility: 0.06 },
-            SLOW_BULL: { name: '慢牛市', desc: '低波动，稳步向上', trend: 0.3, volatility: 0.025 },
+            BULL_RUN: { name: '真牛市', desc: '波动向上，趋势明显', trend: 1.0, volatility: 0.04 },
+            SLOW_BULL: { name: '慢牛市', desc: '低波动，稳步向上', trend: 0.4, volatility: 0.02 },
             SLOW_BLEED: { name: '阴跌市', desc: '低波动，持续向下，偶尔反弹', trend: -0.25, volatility: 0.03 },
             ROLLERCOASTER: { name: '过山车', desc: '剧烈震荡，结局难料', trend: 0, volatility: 0.05, sine: true },
             BEAR_CRASH: { name: '熊市暴跌', desc: '快速崩盘，血流成河', trend: -0.7, volatility: 0.07, crash: true },
@@ -1063,14 +1063,18 @@
             // 逐日动画
             for (let day = startDay; day < endDay; day++) {
                 const dayData = gameState.marketData[day];
-                const prevDayData = day > 0 ? gameState.marketData[day - 1] : null;
+                // 修正：第一天的昨日价格应为初始值100，确保第一天涨跌被计算
+                const effectivePrevDayData = day > 0 ? gameState.marketData[day - 1] : { close: 100 };
                 
                 // 更新所有玩家
                 gameState.players.forEach(p => {
+                    // 1. 先根据【当前仓位】（即昨日决策）计算【今日】收益
+                    calculateDayPnL(p, dayData, effectivePrevDayData);
+
+                    // 2. 然后机器人根据【今日】收盘情况，决定【明日】仓位
                     if (!p.isPlayer) {
-                        updateBotDecision(p, dayData, prevDayData);
+                        updateBotDecision(p, dayData, effectivePrevDayData);
                     }
-                    calculateDayPnL(p, dayData, prevDayData);
                 });
                 
                 gameState.currentDay = day + 1;
