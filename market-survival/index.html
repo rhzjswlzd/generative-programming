@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股市生存游戏 | Market Survival</title>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: local('Courier New'), local('monospace');
+        }
+        
+        :root {
+            --bg-base: #0a0a0c;
+            --bg-surface: #141418;
+            --bg-elevated: #1e1e24;
+            --text-primary: #c8c8cc;
+            --text-secondary: #888890;
+            --text-muted: #58585c;
+            --border: #2a2a30;
+            --green: #4a8c5c;
+            --green-bright: #6ab87c;
+            --red: #8c4a4a;
+            --red-bright: #b86a6a;
+            --gold: #c4a84a;
+            --blue: #4a6a8c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Start Screen */
+        .screen {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        #startScreen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            padding: 24px;
+        }
+        
+        .title {
+            font-size: 32px;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .title .sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+        
+        .start-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        input[type="text"] {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            font-family: inherit;
+            font-size: 16px;
+            width: 240px;
+            text-align: center;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        
+        .btn {
+            background: var(--bg-elevated);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        
+        .btn:hover {
+            background: var(--border);
+            border-color: var(--text-muted);
+        }
+        
+        .btn.primary {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--bg-base);
+        }
+        
+        .btn.primary:hover {
+            background: #d4b85a;
+        }
+        
+        /* Game Screen */
+        #gameScreen {
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .round-info {
+            font-size: 14px;
+        }
+        
+        .round-info span {
+            color: var(--gold);
+        }
+        
+        .game-main {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 16px;
+            flex: 1;
+        }
+        
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .chart-container {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            padding: 12px;
+            flex: 1;
+        }
+        
+        .chart-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        #klineCanvas {
+            width: 100%;
+            height: 280px;
+            image-rendering: pixelated;
+        }
+        
+        .grid-container {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            padding: 12px;
+        }
+        
+        .grid-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        #gridCanvas {
+            width: 100%;
+            height: 160px;
+            image-rendering: pixelated;
+        }
+        
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .player-card {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            padding: 16px;
+        }
+        
+        .player-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        #playerFace {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+        }
+        
+        .player-info {
+            flex: 1;
+        }
+        
+        .player-name {
+            font-size: 16px;
+            color: var(--gold);
+        }
+        
+        .player-rank {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .player-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+        }
+        
+        .stat-value {
+            color: var(--text-primary);
+        }
+        
+        .stat-value.positive {
+            color: var(--green-bright);
+        }
+        
+        .stat-value.negative {
+            color: var(--red-bright);
+        }
+        
+        .control-panel {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            padding: 16px;
+            flex: 1;
+        }
+        
+        .control-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .position-control {
+            margin-bottom: 16px;
+        }
+        
+        .position-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .position-value {
+            color: var(--gold);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--gold);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .quick-btns {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .quick-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 11px;
+        }
+        
+        .next-round-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 14px;
+        }
+        
+        .leaderboard {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            padding: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .leaderboard-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .leaderboard-list {
+            font-size: 11px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .leaderboard-item.player {
+            background: var(--bg-elevated);
+            margin: 0 -8px;
+            padding: 4px 8px;
+        }
+        
+        .lb-rank {
+            width: 30px;
+            color: var(--text-muted);
+        }
+        
+        .lb-name {
+            flex: 1;
+        }
+        
+        .lb-value {
+            width: 80px;
+            text-align: right;
+        }
+        
+        /* End Screen */
+        #endScreen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            gap: 24px;
+            text-align: center;
+        }
+        
+        .end-title {
+            font-size: 24px;
+            color: var(--gold);
+        }
+        
+        .market-summary {
+            max-width: 500px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .final-stats {
+            display: flex;
+            gap: 32px;
+            margin: 16px 0;
+        }
+        
+        .final-stat {
+            text-align: center;
+        }
+        
+        .final-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
+        .final-stat-value {
+            font-size: 20px;
+        }
+        
+        .final-ranking {
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            padding: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .ranking-section {
+            margin-bottom: 16px;
+        }
+        
+        .ranking-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+        
+        .player-comment {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-elevated);
+            border: 2px solid var(--border);
+            max-width: 500px;
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 900px) {
+            .game-main {
+                grid-template-columns: 1fr;
+            }
+            
+            .right-panel {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen active">
+        <div class="title">
+            📈 股市生存游戏<br>
+            <span class="sub">MARKET SURVIVAL</span>
+            <div class="sub" style="margin-top: 16px;">456 人入场，几人能活？</div>
+        </div>
+        <div class="start-form">
+            <input type="text" id="playerName" placeholder="输入你的名字" maxlength="12">
+            <button class="btn primary" id="startBtn">开始游戏</button>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); max-width: 400px; text-align: center; line-height: 1.5;">
+            规则：初始本金 ¥10,000<br>
+            每 10 天为一轮，共 6 轮<br>
+            资金归零即破产出局
+        </div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="game-header">
+            <div class="round-info">第 <span id="currentRound">1</span>/6 轮 | 第 <span id="currentDay">1</span>-<span id="currentDayEnd">10</span> 天</div>
+            <div class="round-info">存活: <span id="aliveCount">456</span>/456</div>
+        </div>
+        
+        <div class="game-main">
+            <div class="left-panel">
+                <div class="chart-container">
+                    <div class="chart-title">📊 K线走势 | <span id="marketType">--</span></div>
+                    <canvas id="klineCanvas"></canvas>
+                </div>
+                <div class="grid-container">
+                    <div class="grid-title">
+                        <span>👥 生存网格 (456人)</span>
+                        <span><span style="color:var(--green)">■</span>盈 <span style="color:var(--red)">■</span>亏 <span style="color:var(--text-muted)">■</span>空仓 <span style="color:#222">■</span>破产</span>
+                    </div>
+                    <canvas id="gridCanvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="player-card">
+                    <div class="player-header">
+                        <canvas id="playerFace" width="48" height="48"></canvas>
+                        <div class="player-info">
+                            <div class="player-name" id="displayName">--</div>
+                            <div class="player-rank">排名: <span id="playerRank">--</span>/456</div>
+                        </div>
+                    </div>
+                    <div class="player-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">当前资产</span>
+                            <span class="stat-value" id="playerAsset">¥10,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">收益率</span>
+                            <span class="stat-value" id="playerReturn">0.00%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">当前仓位</span>
+                            <span class="stat-value" id="playerPosition">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-title">⚙ 仓位调整</div>
+                    <div class="position-control">
+                        <div class="position-label">
+                            <span>投入比例</span>
+                            <span class="position-value" id="positionDisplay">50%</span>
+                        </div>
+                        <input type="range" id="positionSlider" min="0" max="100" value="50">
+                    </div>
+                    <div class="quick-btns">
+                        <button class="btn quick-btn" data-value="0">空仓</button>
+                        <button class="btn quick-btn" data-value="50">半仓</button>
+                        <button class="btn quick-btn" data-value="100">全仓</button>
+                    </div>
+                    <button class="btn primary next-round-btn" id="nextRoundBtn">▶ 下一轮</button>
+                </div>
+                
+                <div class="leaderboard">
+                    <div class="leaderboard-title">🏆 排行榜</div>
+                    <div class="leaderboard-list" id="leaderboardList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- End Screen -->
+    <div id="endScreen" class="screen">
+        <div class="end-title">游戏结束</div>
+        <div class="market-summary" id="marketSummary"></div>
+        
+        <div class="final-stats">
+            <div class="final-stat">
+                <div class="final-stat-label">最终资产</div>
+                <div class="final-stat-value" id="finalAsset">--</div>
+            </div>
+            <div class="final-stat">
+                <div class="final-stat-label">最终排名</div>
+                <div class="final-stat-value" id="finalRank">--</div>
+            </div>
+            <div class="final-stat">
+                <div class="final-stat-label">收益率</div>
+                <div class="final-stat-value" id="finalReturn">--</div>
+            </div>
+        </div>
+        
+        <div class="final-ranking">
+            <div class="ranking-section">
+                <div class="ranking-title">🥇 最大赢家</div>
+                <div id="topWinners"></div>
+            </div>
+            <div class="ranking-section">
+                <div class="ranking-title">💀 最惨输家</div>
+                <div id="topLosers"></div>
+            </div>
+        </div>
+        
+        <div class="player-comment" id="playerComment"></div>
+        
+        <button class="btn primary" id="restartBtn">再来一局</button>
+    </div>
+
+    <script>
+        // ============ GAME STATE ============
+        const TOTAL_PLAYERS = 456;
+        const INITIAL_CAPITAL = 10000;
+        const TOTAL_DAYS = 60;
+        const DAYS_PER_ROUND = 10;
+        const TOTAL_ROUNDS = 6;
+        
+        let gameState = {
+            playerName: '',
+            currentRound: 0,
+            currentDay: 0,
+            marketType: '',
+            marketData: [],
+            players: [],
+            isAnimating: false
+        };
+        
+        // ============ MARKET GENERATION ============
+        const MARKET_TYPES = {
+            BULL_RUN: { name: '真牛市', desc: '高波动，整体大幅向上', trend: 0.8, volatility: 0.06 },
+            SLOW_BULL: { name: '慢牛市', desc: '低波动，稳步向上', trend: 0.3, volatility: 0.025 },
+            SLOW_BLEED: { name: '阴跌市', desc: '低波动，持续向下，偶尔反弹', trend: -0.25, volatility: 0.03 },
+            ROLLERCOASTER: { name: '过山车', desc: '剧烈震荡，结局难料', trend: 0, volatility: 0.05, sine: true }
+        };
+        
+        function generateMarket() {
+            const types = Object.keys(MARKET_TYPES);
+            const typeKey = types[Math.floor(Math.random() * types.length)];
+            const type = MARKET_TYPES[typeKey];
+            gameState.marketType = type.name;
+            
+            const data = [];
+            let price = 100;
+            
+            for (let day = 0; day < TOTAL_DAYS; day++) {
+                let change;
+                
+                if (type.sine) {
+                    // 过山车模式：正弦波 + 随机噪声
+                    const sineValue = Math.sin(day / TOTAL_DAYS * Math.PI * 3) * 0.03;
+                    const noise = (Math.random() - 0.5) * type.volatility;
+                    change = sineValue + noise;
+                    // 最后10天可能暴跌
+                    if (day > 50 && Math.random() < 0.3) {
+                        change -= 0.04;
+                    }
+                } else {
+                    // 标准模式
+                    const dailyTrend = type.trend / TOTAL_DAYS;
+                    const noise = (Math.random() - 0.5) * type.volatility * 2;
+                    change = dailyTrend + noise;
+                    
+                    // 阴跌市偶尔反弹
+                    if (type.trend < 0 && Math.random() < 0.1) {
+                        change = Math.abs(change) * 0.5;
+                    }
+                }
+                
+                // 涨跌幅限制 ±10%
+                change = Math.max(-0.1, Math.min(0.1, change));
+                
+                const open = price;
+                const close = price * (1 + change);
+                const high = Math.max(open, close) * (1 + Math.random() * 0.02);
+                const low = Math.min(open, close) * (1 - Math.random() * 0.02);
+                
+                data.push({ day, open, high, low, close });
+                price = close;
+            }
+            
+            gameState.marketData = data;
+            return type;
+        }
+        
+        // ============ PLAYER/BOT GENERATION ============
+        const BOT_STRATEGIES = {
+            HODLER: { name: 'HODLer', desc: '死拿派' },
+            PANIC_SELLER: { name: 'Panic Seller', desc: '恐慌者' },
+            MARTINGALE: { name: 'Martingale', desc: '加倍派' },
+            TREND_FOLLOWER: { name: 'Trend Follower', desc: '追涨杀跌' },
+            RANDOM: { name: 'Random', desc: '随缘派' }
+        };
+        
+        const BOT_NAME_PREFIXES = ['韭菜', '股神', '巴菲特', '散户', '老王', '小李', '大户', '新手', '老司机', '梭哈王'];
+        
+        function generatePlayers(playerName) {
+            const players = [];
+            
+            // 添加玩家
+            players.push({
+                id: 0,
+                name: playerName,
+                isPlayer: true,
+                capital: INITIAL_CAPITAL,
+                position: 0.5, // 初始50%仓位
+                strategy: null,
+                bankrupt: false,
+                history: [INITIAL_CAPITAL]
+            });
+            
+            // 生成 Bots
+            const strategyKeys = Object.keys(BOT_STRATEGIES);
+            for (let i = 1; i < TOTAL_PLAYERS; i++) {
+                const prefix = BOT_NAME_PREFIXES[Math.floor(Math.random() * BOT_NAME_PREFIXES.length)];
+                const strategyKey = strategyKeys[Math.floor(Math.random() * strategyKeys.length)];
+                
+                players.push({
+                    id: i,
+                    name: `${prefix}_${String(i).padStart(3, '0')}`,
+                    isPlayer: false,
+                    capital: INITIAL_CAPITAL,
+                    position: strategyKey === 'HODLER' ? 1 : Math.random(),
+                    strategy: strategyKey,
+                    bankrupt: false,
+                    history: [INITIAL_CAPITAL]
+                });
+            }
+            
+            gameState.players = players;
+        }
+        
+        function updateBotDecision(bot, dayData, prevDayData) {
+            if (bot.bankrupt) return;
+            
+            const returnRate = (bot.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL;
+            const dayChange = prevDayData ? (dayData.close - prevDayData.close) / prevDayData.close : 0;
+            
+            switch (bot.strategy) {
+                case 'HODLER':
+                    bot.position = 1; // 永远满仓
+                    break;
+                case 'PANIC_SELLER':
+                    if (returnRate < -0.05) {
+                        bot.position = 0; // 亏损5%清仓
+                    }
+                    break;
+                case 'MARTINGALE':
+                    if (returnRate < 0) {
+                        bot.position = Math.min(1, bot.position + 0.2); // 亏损加仓
+                    }
+                    break;
+                case 'TREND_FOLLOWER':
+                    if (dayChange > 0.02) {
+                        bot.position = Math.min(1, bot.position + 0.3); // 追涨
+                    } else if (dayChange < -0.02) {
+                        bot.position = Math.max(0, bot.position - 0.3); // 杀跌
+                    }
+                    break;
+                case 'RANDOM':
+                    if (Math.random() < 0.3) {
+                        bot.position = Math.random();
+                    }
+                    break;
+            }
+        }
+        
+        function calculateDayPnL(player, dayData, prevDayData) {
+            if (player.bankrupt || !prevDayData) return;
+            
+            const dayReturn = (dayData.close - prevDayData.close) / prevDayData.close;
+            const pnl = player.capital * player.position * dayReturn;
+            player.capital += pnl;
+            
+            if (player.capital <= 0) {
+                player.capital = 0;
+                player.bankrupt = true;
+                player.position = 0;
+            }
+            
+            player.history.push(player.capital);
+        }
+        
+        // ============ RENDERING ============
+        function drawKlineChart(upToDay) {
+            const canvas = document.getElementById('klineCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置实际像素大小
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = { top: 20, right: 10, bottom: 20, left: 50 };
+            
+            // 清空
+            ctx.fillStyle = '#0a0a0c';
+            ctx.fillRect(0, 0, width, height);
+            
+            const data = gameState.marketData.slice(0, upToDay);
+            if (data.length === 0) return;
+            
+            // 计算价格范围
+            let minPrice = Infinity, maxPrice = -Infinity;
+            data.forEach(d => {
+                minPrice = Math.min(minPrice, d.low);
+                maxPrice = Math.max(maxPrice, d.high);
+            });
+            const priceRange = maxPrice - minPrice || 1;
+            
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            const candleWidth = Math.max(2, Math.floor(chartWidth / TOTAL_DAYS) - 1);
+            
+            // 绘制网格线
+            ctx.strokeStyle = '#1a1a20';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartHeight / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+                
+                // 价格标签
+                const price = maxPrice - (priceRange / 4) * i;
+                ctx.fillStyle = '#58585c';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'right';
+                ctx.fillText(price.toFixed(1), padding.left - 5, y + 3);
+            }
+            
+            // 绘制K线
+            data.forEach((d, i) => {
+                const x = padding.left + (i / TOTAL_DAYS) * chartWidth + candleWidth / 2;
+                const isUp = d.close >= d.open;
+                
+                ctx.fillStyle = isUp ? '#4a8c5c' : '#8c4a4a';
+                ctx.strokeStyle = isUp ? '#4a8c5c' : '#8c4a4a';
+                
+                // 影线
+                const highY = padding.top + ((maxPrice - d.high) / priceRange) * chartHeight;
+                const lowY = padding.top + ((maxPrice - d.low) / priceRange) * chartHeight;
+                ctx.beginPath();
+                ctx.moveTo(x, highY);
+                ctx.lineTo(x, lowY);
+                ctx.stroke();
+                
+                // 实体
+                const openY = padding.top + ((maxPrice - d.open) / priceRange) * chartHeight;
+                const closeY = padding.top + ((maxPrice - d.close) / priceRange) * chartHeight;
+                const bodyTop = Math.min(openY, closeY);
+                const bodyHeight = Math.max(1, Math.abs(closeY - openY));
+                ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+            });
+            
+            // 当前价格
+            if (data.length > 0) {
+                const lastPrice = data[data.length - 1].close;
+                const returnRate = ((lastPrice / 100) - 1) * 100;
+                ctx.fillStyle = returnRate >= 0 ? '#6ab87c' : '#b86a6a';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(`¥${lastPrice.toFixed(2)} (${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(1)}%)`, padding.left + 5, padding.top + 15);
+            }
+        }
+        
+        function drawSurvivalGrid() {
+            const canvas = document.getElementById('gridCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            const cols = 38;
+            const rows = 12;
+            const cellSize = Math.min(canvas.width / cols, canvas.height / rows);
+            const offsetX = (canvas.width - cols * cellSize) / 2;
+            const offsetY = (canvas.height - rows * cellSize) / 2;
+            
+            ctx.fillStyle = '#0a0a0c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            gameState.players.forEach((player, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = offsetX + col * cellSize;
+                const y = offsetY + row * cellSize;
+                
+                let color;
+                if (player.bankrupt) {
+                    color = '#1a1a1a';
+                } else if (player.position === 0) {
+                    color = '#3a3a40';
+                } else {
+                    const returnRate = (player.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL;
+                    if (returnRate > 0) {
+                        const intensity = Math.min(1, returnRate * 2);
+                        color = `rgb(${74 + intensity * 30}, ${140 + intensity * 20}, ${92 + intensity * 20})`;
+                    } else {
+                        const intensity = Math.min(1, Math.abs(returnRate) * 2);
+                        color = `rgb(${140 + intensity * 30}, ${74 + intensity * 20}, ${74 + intensity * 20})`;
+                    }
+                }
+                
+                // 玩家格子用边框高亮
+                if (player.isPlayer) {
+                    ctx.fillStyle = '#c4a84a';
+                    ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x + 1, y + 1, cellSize - 3, cellSize - 3);
+                } else {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+                }
+            });
+        }
+        
+        function drawPlayerFace(mood) {
+            const canvas = document.getElementById('playerFace');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#c4a84a';
+            ctx.fillRect(0, 0, 48, 48);
+            
+            // 简单像素脸
+            ctx.fillStyle = '#0a0a0c';
+            // 眼睛
+            ctx.fillRect(12, 16, 6, 6);
+            ctx.fillRect(30, 16, 6, 6);
+            
+            // 嘴巴
+            if (mood === 'happy') {
+                ctx.fillRect(12, 32, 6, 4);
+                ctx.fillRect(18, 36, 12, 4);
+                ctx.fillRect(30, 32, 6, 4);
+            } else if (mood === 'neutral') {
+                ctx.fillRect(14, 34, 20, 4);
+            } else if (mood === 'panic') {
+                ctx.fillRect(12, 36, 6, 4);
+                ctx.fillRect(18, 32, 12, 4);
+                ctx.fillRect(30, 36, 6, 4);
+                // 汗滴
+                ctx.fillStyle = '#4a6a8c';
+                ctx.fillRect(40, 12, 4, 8);
+            }
+        }
+        
+        function updateLeaderboard() {
+            const sorted = [...gameState.players].sort((a, b) => b.capital - a.capital);
+            const playerRank = sorted.findIndex(p => p.isPlayer) + 1;
+            
+            document.getElementById('playerRank').textContent = playerRank;
+            
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+            
+            // 显示前10名 + 玩家（如果不在前10）
+            const top10 = sorted.slice(0, 10);
+            const playerInTop10 = top10.some(p => p.isPlayer);
+            
+            top10.forEach((p, i) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item' + (p.isPlayer ? ' player' : '');
+                item.innerHTML = `
+                    <span class="lb-rank">#${i + 1}</span>
+                    <span class="lb-name">${p.name}${p.bankrupt ? ' 💀' : ''}</span>
+                    <span class="lb-value ${p.capital >= INITIAL_CAPITAL ? 'positive' : 'negative'}">¥${p.capital.toFixed(0)}</span>
+                `;
+                list.appendChild(item);
+            });
+            
+            if (!playerInTop10) {
+                const player = gameState.players[0];
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item player';
+                item.innerHTML = `
+                    <span class="lb-rank">#${playerRank}</span>
+                    <span class="lb-name">${player.name}${player.bankrupt ? ' 💀' : ''}</span>
+                    <span class="lb-value ${player.capital >= INITIAL_CAPITAL ? 'positive' : 'negative'}">¥${player.capital.toFixed(0)}</span>
+                `;
+                list.appendChild(item);
+            }
+        }
+        
+        function updatePlayerStats() {
+            const player = gameState.players[0];
+            const returnRate = ((player.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100);
+            
+            document.getElementById('playerAsset').textContent = `¥${player.capital.toFixed(0)}`;
+            document.getElementById('playerAsset').className = 'stat-value ' + (returnRate >= 0 ? 'positive' : 'negative');
+            
+            document.getElementById('playerReturn').textContent = `${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(2)}%`;
+            document.getElementById('playerReturn').className = 'stat-value ' + (returnRate >= 0 ? 'positive' : 'negative');
+            
+            document.getElementById('playerPosition').textContent = `${(player.position * 100).toFixed(0)}%`;
+            
+            // 更新表情
+            let mood = 'neutral';
+            if (returnRate > 5) mood = 'happy';
+            else if (returnRate < -5) mood = 'panic';
+            drawPlayerFace(mood);
+            
+            // 更新存活数
+            const alive = gameState.players.filter(p => !p.bankrupt).length;
+            document.getElementById('aliveCount').textContent = alive;
+        }
+        
+        // ============ GAME FLOW ============
+        async function playRound() {
+            if (gameState.isAnimating) return;
+            gameState.isAnimating = true;
+            
+            const btn = document.getElementById('nextRoundBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 播放中...';
+            
+            const startDay = gameState.currentRound * DAYS_PER_ROUND;
+            const endDay = startDay + DAYS_PER_ROUND;
+            
+            // 更新玩家仓位
+            const player = gameState.players[0];
+            player.position = parseInt(document.getElementById('positionSlider').value) / 100;
+            
+            // 逐日动画
+            for (let day = startDay; day < endDay; day++) {
+                const dayData = gameState.marketData[day];
+                const prevDayData = day > 0 ? gameState.marketData[day - 1] : null;
+                
+                // 更新所有玩家
+                gameState.players.forEach(p => {
+                    if (!p.isPlayer) {
+                        updateBotDecision(p, dayData, prevDayData);
+                    }
+                    calculateDayPnL(p, dayData, prevDayData);
+                });
+                
+                gameState.currentDay = day + 1;
+                
+                // 更新UI
+                drawKlineChart(day + 1);
+                drawSurvivalGrid();
+                updatePlayerStats();
+                updateLeaderboard();
+                
+                document.getElementById('currentDay').textContent = startDay + 1;
+                document.getElementById('currentDayEnd').textContent = endDay;
+                
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+            
+            gameState.currentRound++;
+            
+            if (gameState.currentRound >= TOTAL_ROUNDS) {
+                // 游戏结束
+                showEndScreen();
+            } else {
+                document.getElementById('currentRound').textContent = gameState.currentRound + 1;
+                btn.disabled = false;
+                btn.textContent = '▶ 下一轮';
+            }
+            
+            gameState.isAnimating = false;
+        }
+        
+        function showEndScreen() {
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('endScreen').classList.add('active');
+            
+            const player = gameState.players[0];
+            const returnRate = ((player.capital - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100);
+            const sorted = [...gameState.players].sort((a, b) => b.capital - a.capital);
+            const playerRank = sorted.findIndex(p => p.isPlayer) + 1;
+            
+            // 市场总结
+            const marketSummaries = {
+                '真牛市': '这是一轮疯狂的牛市。多头狂欢，空仓者悔恨终生。',
+                '慢牛市': '市场稳步上行，耐心者获得回报，急躁者却在震荡中离场。',
+                '阴跌市': '这是一场残酷的阴跌。每次反弹都是陷阱，绝望笼罩全场。',
+                '过山车': '市场如过山车般剧烈震荡。无数人在高点入场，低点割肉。'
+            };
+            document.getElementById('marketSummary').textContent = marketSummaries[gameState.marketType] || '';
+            document.getElementById('marketType').textContent = gameState.marketType;
+            
+            // 最终数据
+            document.getElementById('finalAsset').textContent = `¥${player.capital.toFixed(0)}`;
+            document.getElementById('finalAsset').style.color = returnRate >= 0 ? 'var(--green-bright)' : 'var(--red-bright)';
+            document.getElementById('finalRank').textContent = `#${playerRank}`;
+            document.getElementById('finalReturn').textContent = `${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(1)}%`;
+            document.getElementById('finalReturn').style.color = returnRate >= 0 ? 'var(--green-bright)' : 'var(--red-bright)';
+            
+            // 赢家/输家
+            const winners = sorted.slice(0, 3);
+            const losers = sorted.filter(p => !p.bankrupt).slice(-3).reverse();
+            const bankrupts = sorted.filter(p => p.bankrupt);
+            
+            document.getElementById('topWinners').innerHTML = winners.map((p, i) => `
+                <div class="ranking-item">
+                    <span>${['🥇','🥈','🥉'][i]} ${p.name}</span>
+                    <span style="color:var(--green-bright)">¥${p.capital.toFixed(0)}</span>
+                </div>
+            `).join('');
+            
+            const loserList = bankrupts.length > 0 ? bankrupts.slice(0, 3) : losers;
+            document.getElementById('topLosers').innerHTML = loserList.map(p => `
+                <div class="ranking-item">
+                    <span>💀 ${p.name}</span>
+                    <span style="color:var(--red-bright)">¥${p.capital.toFixed(0)}</span>
+                </div>
+            `).join('');
+            
+            // 玩家评语
+            let comment;
+            if (playerRank === 1) {
+                comment = '👑 你是最终的王者。在这场血腥的资本游戏中，你战胜了455个对手。';
+            } else if (playerRank <= 10) {
+                comment = `📈 前十名，不错的成绩。但第一名赚了 ¥${sorted[0].capital.toFixed(0)}，你还差得远。`;
+            } else if (playerRank <= 100) {
+                comment = '📊 中游水平。你没有犯致命错误，但也没有抓住机会。';
+            } else if (playerRank <= 300) {
+                comment = '📉 下半区选手。建议重新思考你的投资策略。';
+            } else if (!player.bankrupt) {
+                comment = '🥀 垫底选手。至少你还活着，虽然活得很狼狈。';
+            } else {
+                comment = '💀 破产了。你的资金归零，成为韭菜中的韭菜。';
+            }
+            document.getElementById('playerComment').textContent = comment;
+        }
+        
+        // ============ INIT ============
+        function initGame() {
+            // 重置状态
+            gameState = {
+                playerName: document.getElementById('playerName').value || '玩家',
+                currentRound: 0,
+                currentDay: 0,
+                marketType: '',
+                marketData: [],
+                players: [],
+                isAnimating: false
+            };
+            
+            // 生成市场和玩家
+            generateMarket();
+            generatePlayers(gameState.playerName);
+            
+            // 切换界面
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('endScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            
+            // 更新UI
+            document.getElementById('displayName').textContent = gameState.playerName;
+            document.getElementById('currentRound').textContent = 1;
+            document.getElementById('marketType').textContent = gameState.marketType;
+            
+            // 初始绘制
+            drawKlineChart(0);
+            drawSurvivalGrid();
+            updatePlayerStats();
+            updateLeaderboard();
+            
+            document.getElementById('nextRoundBtn').disabled = false;
+            document.getElementById('nextRoundBtn').textContent = '▶ 下一轮';
+        }
+        
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', initGame);
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            document.getElementById('endScreen').classList.remove('active');
+            document.getElementById('startScreen').classList.add('active');
+        });
+        document.getElementById('nextRoundBtn').addEventListener('click', playRound);
+        
+        document.getElementById('positionSlider').addEventListener('input', (e) => {
+            document.getElementById('positionDisplay').textContent = e.target.value + '%';
+        });
+        
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const value = btn.dataset.value;
+                document.getElementById('positionSlider').value = value;
+                document.getElementById('positionDisplay').textContent = value + '%';
+            });
+        });
+        
+        // Enter key to start
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') initGame();
+        });
+    </script>
+</body>
+</html>
