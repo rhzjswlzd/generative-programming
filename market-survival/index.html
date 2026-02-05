@@ -615,7 +615,9 @@
             ROLLERCOASTER: { name: '过山车', desc: '剧烈震荡，结局难料', trend: 0, volatility: 0.05, sine: true },
             BEAR_CRASH: { name: '熊市暴跌', desc: '快速崩盘，血流成河', trend: -0.7, volatility: 0.07, crash: true },
             SIDEWAYS: { name: '横盘震荡', desc: '几乎不涨不跌，磨人心态', trend: 0, volatility: 0.015 },
-            V_RECOVERY: { name: 'V型反转', desc: '先跌后涨，考验信念', trend: 0, volatility: 0.04, vshape: true }
+            V_RECOVERY: { name: 'V型反转', desc: '先跌后涨，考验信念', trend: 0, volatility: 0.04, vshape: true },
+            PUMP_AND_DUMP: { name: '庄家拉盘', desc: '疯狂拉升，瞬间归零', pump: true, volatility: 0.08 },
+            FLASH_CRASH: { name: '闪崩回升', desc: '平时平稳，突发崩盘', flash: true, volatility: 0.02 }
         };
         
         function generateMarket() {
@@ -627,6 +629,9 @@
             const data = [];
             let price = 100;
             
+            // 闪崩日随机生成 (20-50天之间)
+            const flashCrashDay = 20 + Math.floor(Math.random() * 30);
+
             for (let day = 0; day < TOTAL_DAYS; day++) {
                 let change;
                 
@@ -659,6 +664,22 @@
                         // 反转上涨阶段
                         const upTrend = 0.7 / midPoint;
                         change = upTrend + (Math.random() - 0.5) * type.volatility;
+                    }
+                } else if (type.pump) {
+                    // 庄家拉盘：前期疯狂拉升，最后断崖
+                    if (day < 40) {
+                        change = 0.03 + (Math.random() - 0.2) * type.volatility; // 疯狂上涨
+                    } else {
+                        change = -0.15 + (Math.random() - 0.5) * type.volatility; // 崩盘
+                    }
+                } else if (type.flash) {
+                    // 闪崩回升
+                    if (day === flashCrashDay) {
+                        change = -0.30; // 闪崩
+                    } else if (day === flashCrashDay + 1 || day === flashCrashDay + 2) {
+                        change = 0.15; // 快速修复
+                    } else {
+                        change = (Math.random() - 0.5) * type.volatility; // 平时平稳
                     }
                 } else {
                     // 标准模式
@@ -694,6 +715,8 @@
             PANIC_SELLER: { name: 'Panic Seller', desc: '恐慌者' },
             MARTINGALE: { name: 'Martingale', desc: '加倍派' },
             TREND_FOLLOWER: { name: 'Trend Follower', desc: '追涨杀跌' },
+            FOMO_BUYER: { name: 'FOMO Buyer', desc: '追高侠' },
+            CONTRARIAN: { name: 'Contrarian', desc: '逆势/抄底' },
             RANDOM: { name: 'Random', desc: '随缘派' }
         };
         
@@ -785,6 +808,23 @@
                         bot.position = Math.max(0, bot.position - 0.3 * p.aggression + noise);
                     } else {
                         bot.position = Math.max(0, Math.min(1, bot.position + noise * 0.5));
+                    }
+                    break;
+                case 'FOMO_BUYER':
+                    // 追高侠：大涨就满仓，跌了装死
+                    if (dayChange > 0.04 * p.threshold) {
+                         bot.position = 1;
+                    } else if (dayChange < -0.05) {
+                        // 实在跌太多可能会怕
+                        if (Math.random() < 0.3) bot.position *= 0.5;
+                    }
+                    break;
+                case 'CONTRARIAN':
+                    // 逆势交易：大跌买入，大涨卖出
+                    if (dayChange < -0.06 * p.threshold) {
+                        bot.position = Math.min(1, bot.position + 0.5); // 抄底
+                    } else if (dayChange > 0.06 * p.threshold) {
+                        bot.position = Math.max(0, bot.position - 0.5); // 逃顶
                     }
                     break;
                 case 'RANDOM':
@@ -1122,7 +1162,9 @@
                 '过山车': '这是一轮剧烈的【过山车】行情。无数人在高点入场，低点割肉。',
                 '熊市暴跌': '这是一场惨烈的【熊市暴跌】。前期的小涨是诱多陷阱，随后市场崩盘，血流成河。',
                 '横盘震荡': '这是一轮漫长的【横盘震荡】。市场几乎不涨不跌，磨灭了所有人的耐心。',
-                'V型反转': '这是一轮经典的【V型反转】。前半程暴跌让人绝望，后半程反弹让坚持者翻盘。'
+                'V型反转': '这是一轮经典的【V型反转】。前半程暴跌让人绝望，后半程反弹让坚持者翻盘。',
+                '庄家拉盘': '这是一场惊心动魄的【庄家拉盘】。前期暴涨让贪婪者疯狂，最后的崩盘让追高者血本无归。',
+                '闪崩回升': '这是一次罕见的【闪崩回升】。突如其来的暴跌清洗了杠杆，随后市场迅速修复，仿佛什么都没发生。'
             };
             document.getElementById('marketSummary').textContent = marketSummaries[gameState.marketType] || '';
             
