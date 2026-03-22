@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction-Diffusion | 反应扩散系统</title>
+    <style>
+        :root {
+            --bg-base: #1c1c1e;
+            --bg-surface: #252528;
+            --bg-elevated: #2c2c30;
+            --text-primary: #d8d8dc;
+            --text-secondary: #a0a0a6;
+            --text-muted: #6c6c72;
+            --accent: #8a9fb5;
+            --accent-hover: #9cb0c4;
+            --border: #363638;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', 'PingFang SC', -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 48px 24px;
+        }
+
+        .container { max-width: 900px; width: 100%; }
+
+        header { margin-bottom: 32px; }
+
+        h1 { font-size: 1.75rem; font-weight: 500; margin-bottom: 6px; }
+
+        .subtitle { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.15s ease-out, border-color 0.15s;
+        }
+
+        button:hover { background: var(--bg-elevated); }
+
+        button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-base);
+        }
+
+        button.primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        button.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .presets {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .presets-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .theme-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .theme-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+
+        .theme-dot:hover { transform: scale(1.1); }
+
+        .theme-dot.active { border-color: var(--text-primary); }
+
+        .canvas-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: inline-block;
+        }
+
+        canvas {
+            display: block;
+            border-radius: var(--radius-sm);
+            cursor: crosshair;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            transition: filter 0.3s ease;
+        }
+
+        canvas.smooth {
+            image-rendering: auto;
+            filter: blur(0.4px);
+        }
+
+        .stats {
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: flex;
+            gap: 24px;
+        }
+
+        .params {
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 180px;
+            flex: 1;
+        }
+
+        .param-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .param-value {
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            font-size: 0.85rem;
+        }
+
+        .param-reset {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 0 0 0 6px;
+            line-height: 1;
+            opacity: 0;
+            transition: opacity 0.15s, color 0.15s;
+        }
+
+        .param-group:hover .param-reset {
+            opacity: 1;
+        }
+
+        .param-reset:hover {
+            color: var(--accent);
+            background: none;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .info {
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            max-width: 700px;
+        }
+
+        .info h2 { font-size: 1rem; font-weight: 500; margin-bottom: 12px; }
+
+        .info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 10px;
+        }
+
+        .info p:last-child { margin-bottom: 0; }
+
+        @media (max-width: 700px) {
+            body { padding: 24px 16px; }
+            h1 { font-size: 1.5rem; }
+            .params { gap: 20px; }
+            .param-group { min-width: 140px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧪 Reaction-Diffusion</h1>
+            <p class="subtitle">反应扩散系统 — 在画布上绘制，观察花纹自发涌现</p>
+        </header>
+
+        <div class="controls">
+            <button class="primary" id="startStop">▶ 开始</button>
+            <button id="reset">⟳ 重置</button>
+            <button id="clear">✕ 清空</button>
+            <button id="smooth">◉ 平滑</button>
+            <div class="theme-buttons">
+                <div class="theme-dot active" id="theme-sea"
+                     style="background: linear-gradient(135deg, #020310, #00cfff)" title="电蓝"></div>
+                <div class="theme-dot" id="theme-lava"
+                     style="background: linear-gradient(135deg, #080208, #ff00b4)" title="霓虹粉"></div>
+                <div class="theme-dot" id="theme-moss"
+                     style="background: linear-gradient(135deg, #020502, #00e646)" title="酸绿"></div>
+                <div class="theme-dot" id="theme-dusk"
+                     style="background: linear-gradient(135deg, #04020c, #3c00ff, #00ffee)" title="赛博紫"></div>
+            </div>
+        </div>
+
+        <div class="presets">
+            <span class="presets-label">预设：</span>
+            <button class="active" data-preset="coral">珊瑚礁</button>
+            <button data-preset="cells">细胞分裂</button>
+            <button data-preset="maze">迷宫</button>
+            <button data-preset="spots">豹纹斑点</button>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="stats">
+            <span>帧数 <strong id="frameCount">0</strong></span>
+            <span>模拟步 <strong id="stepCount">0</strong></span>
+        </div>
+
+        <div class="params">
+            <div class="param-group">
+                <div class="param-label">
+                    <span>补充率 f</span>
+                    <span style="display:flex;align-items:baseline;gap:2px">
+                        <span class="param-value" id="fVal">0.0370</span>
+                        <button class="param-reset" id="fReset" title="复位默认值">↺</button>
+                    </span>
+                </div>
+                <input type="range" id="fSlider" min="0.010" max="0.080" step="0.001" value="0.037">
+            </div>
+            <div class="param-group">
+                <div class="param-label">
+                    <span>衰减率 k</span>
+                    <span style="display:flex;align-items:baseline;gap:2px">
+                        <span class="param-value" id="kVal">0.0600</span>
+                        <button class="param-reset" id="kReset" title="复位默认值">↺</button>
+                    </span>
+                </div>
+                <input type="range" id="kSlider" min="0.040" max="0.070" step="0.001" value="0.060">
+            </div>
+            <div class="param-group">
+                <div class="param-label">
+                    <span>模拟速度</span>
+                    <span style="display:flex;align-items:baseline;gap:2px">
+                        <span class="param-value" id="speedVal">4</span>&nbsp;步/帧
+                        <button class="param-reset" id="speedReset" title="复位默认值">↺</button>
+                    </span>
+                </div>
+                <input type="range" id="speedSlider" min="1" max="24" step="1" value="4">
+            </div>
+        </div>
+
+        <div class="info">
+            <h2>📖 Gray-Scott 模型</h2>
+            <p>两种物质 A（背景）和 B（花纹）在网格上扩散，同时发生化学反应：A 被 B 消耗，B 由反应产生并自然衰减。f 控制 A 的补充速率，k 控制 B 的衰减速率。</p>
+            <p>微小的参数变化会导致截然不同的花纹——珊瑚、迷宫、细胞分裂、豹纹——这种敏感性源自反应与扩散之间的动态平衡，也正是自然界花纹形成的数学本质。</p>
+            <p>鼠标在画布上划动可播种 B 物质，触发新的花纹生长。切换预设后花纹会从当前状态继续演化变形。</p>
+        </div>
+    </div>
+
+    <script>
+        // ── Simulation grid ──────────────────────────────────────────────
+        const W = 320, H = 240;             // simulation resolution
+        const DISPLAY = 2;                  // CSS scale factor
+
+        const canvas = document.getElementById('canvas');
+        canvas.width  = W;
+        canvas.height = H;
+        canvas.style.width  = (W * DISPLAY) + 'px';
+        canvas.style.height = (H * DISPLAY) + 'px';
+
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.createImageData(W, H);
+        const pixels = imageData.data;
+
+        // Double-buffered concentration arrays
+        let bufA = new Float32Array(W * H);
+        let bufB = new Float32Array(W * H);
+        let nxtA = new Float32Array(W * H);
+        let nxtB = new Float32Array(W * H);
+
+        // ── Parameters ───────────────────────────────────────────────────
+        const dA = 1.0, dB = 0.5;   // diffusion rates
+        let f = 0.037, k = 0.060;   // feed, kill
+        let stepsPerFrame = 4;
+
+        // ── Color themes — Cyberpunk palette ──────────────────────────────
+        // Pure black bg → neon accent. Bright core, no white bleed.
+        const themeDefs = {
+            // 电蓝 — electric blue
+            sea: [
+                { t: 0.00, r:   2, g:   3, b:  10 },
+                { t: 0.45, r:   2, g:   3, b:  10 },
+                { t: 0.63, r:   0, g:  25, b: 120 },   // deep electric
+                { t: 0.82, r:   0, g: 160, b: 255 },   // neon blue
+                { t: 1.00, r:  60, g: 220, b: 255 },   // peak — icy cyan core
+            ],
+            // 霓虹粉 — hot magenta
+            lava: [
+                { t: 0.00, r:   8, g:   2, b:   8 },
+                { t: 0.45, r:   8, g:   2, b:   8 },
+                { t: 0.63, r:  90, g:   0, b:  80 },   // deep magenta
+                { t: 0.82, r: 255, g:   0, b: 180 },   // hot pink
+                { t: 1.00, r: 255, g:  90, b: 230 },   // peak — pink-white core
+            ],
+            // 酸绿 — acid / matrix green
+            moss: [
+                { t: 0.00, r:   2, g:   5, b:   2 },
+                { t: 0.45, r:   2, g:   5, b:   2 },
+                { t: 0.63, r:   0, g:  80, b:  12 },   // deep green
+                { t: 0.82, r:   0, g: 230, b:  50 },   // acid green
+                { t: 1.00, r: 120, g: 255, b: 110 },   // peak — lime core
+            ],
+            // 赛博紫 — purple edge → cyan core (dual-tone, very cyberpunk)
+            dusk: [
+                { t: 0.00, r:   4, g:   2, b:  12 },
+                { t: 0.45, r:   4, g:   2, b:  12 },
+                { t: 0.60, r:  50, g:   0, b: 160 },   // deep violet (outer edge)
+                { t: 0.78, r:   0, g:  80, b: 255 },   // electric indigo (mid)
+                { t: 0.90, r:   0, g: 230, b: 255 },   // cyan (inner edge)
+                { t: 1.00, r: 200, g: 255, b: 255 },   // peak — near-white cyan core
+            ],
+        };
+
+        // Build a 256-entry Uint8 LUT from stops
+        function buildLUT(stops) {
+            const lut = new Uint8Array(256 * 3);
+            for (let i = 0; i < 256; i++) {
+                const t = i / 255;
+                let s = 0;
+                while (s < stops.length - 2 && stops[s + 1].t <= t) s++;
+                const a = stops[s], b = stops[s + 1];
+                const u = (t - a.t) / (b.t - a.t);
+                const uc = u < 0 ? 0 : u > 1 ? 1 : u;
+                lut[i * 3]     = (a.r + (b.r - a.r) * uc + 0.5) | 0;
+                lut[i * 3 + 1] = (a.g + (b.g - a.g) * uc + 0.5) | 0;
+                lut[i * 3 + 2] = (a.b + (b.b - a.b) * uc + 0.5) | 0;
+            }
+            return lut;
+        }
+
+        const luts = {};
+        for (const name in themeDefs) luts[name] = buildLUT(themeDefs[name]);
+        let lut = luts.sea;
+
+        // ── Presets ───────────────────────────────────────────────────────
+        const presets = {
+            coral: { f: 0.037, k: 0.060 },
+            cells: { f: 0.025, k: 0.055 },
+            maze:  { f: 0.029, k: 0.057 },
+            spots: { f: 0.055, k: 0.062 },
+        };
+
+        // ── State ─────────────────────────────────────────────────────────
+        let running = false;
+        let frames = 0, steps = 0;
+        let animId = null;
+
+        // ── Init / seed ───────────────────────────────────────────────────
+        function seed(cx, cy, r) {
+            const ri = r | 0;
+            for (let dy = -ri; dy <= ri; dy++) {
+                for (let dx = -ri; dx <= ri; dx++) {
+                    const x = (cx + dx) | 0;
+                    const y = (cy + dy) | 0;
+                    if (x < 1 || x >= W - 1 || y < 1 || y >= H - 1) continue;
+                    if (dx * dx + dy * dy <= r * r) {
+                        const i = y * W + x;
+                        bufA[i] = 0.5  + (Math.random() - 0.5) * 0.2;
+                        bufB[i] = 0.25 + (Math.random() - 0.5) * 0.1;
+                    }
+                }
+            }
+        }
+
+        function reset() {
+            bufA.fill(1.0);
+            bufB.fill(0.0);
+            // Two quiet seeds — let patterns grow slowly
+            seed(W * 0.40, H * 0.45, 10);
+            seed(W * 0.62, H * 0.55, 10);
+            frames = 0; steps = 0;
+            updateStats();
+        }
+
+        function clearAll() {
+            bufA.fill(1.0);
+            bufB.fill(0.0);
+            frames = 0; steps = 0;
+            updateStats();
+            render();
+        }
+
+        function updateStats() {
+            document.getElementById('frameCount').textContent = frames;
+            document.getElementById('stepCount').textContent = steps;
+        }
+
+        // ── Simulation step ───────────────────────────────────────────────
+        function step() {
+            for (let y = 0; y < H; y++) {
+                const yU = y > 0     ? y - 1 : H - 1;
+                const yD = y < H - 1 ? y + 1 : 0;
+                const rowC = y  * W;
+                const rowU = yU * W;
+                const rowD = yD * W;
+
+                for (let x = 0; x < W; x++) {
+                    const xL = x > 0     ? x - 1 : W - 1;
+                    const xR = x < W - 1 ? x + 1 : 0;
+
+                    const i = rowC + x;
+
+                    // 9-point weighted Laplacian
+                    const lapA =
+                        0.05 * bufA[rowU + xL] + 0.20 * bufA[rowU + x] + 0.05 * bufA[rowU + xR] +
+                        0.20 * bufA[rowC + xL] - 1.00 * bufA[i]        + 0.20 * bufA[rowC + xR] +
+                        0.05 * bufA[rowD + xL] + 0.20 * bufA[rowD + x] + 0.05 * bufA[rowD + xR];
+
+                    const lapB =
+                        0.05 * bufB[rowU + xL] + 0.20 * bufB[rowU + x] + 0.05 * bufB[rowU + xR] +
+                        0.20 * bufB[rowC + xL] - 1.00 * bufB[i]        + 0.20 * bufB[rowC + xR] +
+                        0.05 * bufB[rowD + xL] + 0.20 * bufB[rowD + x] + 0.05 * bufB[rowD + xR];
+
+                    const a = bufA[i];
+                    const b = bufB[i];
+                    const abb = a * b * b;
+
+                    let na = a + dA * lapA - abb + f * (1.0 - a);
+                    let nb = b + dB * lapB + abb - (f + k) * b;
+
+                    nxtA[i] = na < 0.0 ? 0.0 : na > 1.0 ? 1.0 : na;
+                    nxtB[i] = nb < 0.0 ? 0.0 : nb > 1.0 ? 1.0 : nb;
+                }
+            }
+            // Swap buffers
+            const tA = bufA; bufA = nxtA; nxtA = tA;
+            const tB = bufB; bufB = nxtB; nxtB = tB;
+        }
+
+        // ── Render (LUT + threshold smoothstep) ──────────────────────────
+        // Below lo → black, above hi → full color, lo..hi → smooth ramp.
+        // This gives crisp saturated lines with no halo.
+        const CURVE_LO = 0.30, CURVE_HI = 0.82;
+
+        function render() {
+            for (let i = 0; i < W * H; i++) {
+                const t = 1.0 - bufA[i];   // 0 = bg, 1 = dense pattern
+                let tc;
+                if (t <= CURVE_LO) {
+                    tc = 0;
+                } else if (t >= CURVE_HI) {
+                    tc = 1;
+                } else {
+                    const u = (t - CURVE_LO) / (CURVE_HI - CURVE_LO);
+                    tc = u * u * (3.0 - 2.0 * u);   // smoothstep
+                }
+                const idx = tc > 0.9961 ? 255 : (tc * 256) | 0;
+                const pi  = i * 4;
+                pixels[pi]     = lut[idx * 3];
+                pixels[pi + 1] = lut[idx * 3 + 1];
+                pixels[pi + 2] = lut[idx * 3 + 2];
+                pixels[pi + 3] = 255;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // ── Main loop ─────────────────────────────────────────────────────
+        function loop() {
+            for (let i = 0; i < stepsPerFrame; i++) step();
+            steps += stepsPerFrame;
+            frames++;
+            render();
+            updateStats();
+            if (running) animId = requestAnimationFrame(loop);
+        }
+
+        // ── Controls ──────────────────────────────────────────────────────
+        document.getElementById('startStop').addEventListener('click', function () {
+            running = !running;
+            this.textContent = running ? '⏸ 暂停' : '▶ 开始';
+            this.classList.toggle('primary', !running);
+            if (running) loop();
+        });
+
+        document.getElementById('reset').addEventListener('click', () => {
+            reset();
+            render();
+        });
+
+        document.getElementById('clear').addEventListener('click', clearAll);
+
+        // Smooth toggle
+        document.getElementById('smooth').addEventListener('click', function () {
+            canvas.classList.toggle('smooth');
+            this.classList.toggle('active');
+        });
+
+        // Themes
+        document.querySelectorAll('.theme-dot').forEach(dot => {
+            dot.addEventListener('click', function () {
+                document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
+                lut = luts[this.id.replace('theme-', '')];
+                render();
+            });
+        });
+
+        // Presets
+        document.querySelectorAll('[data-preset]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const p = presets[this.dataset.preset];
+                setF(p.f);
+                setK(p.k);
+            });
+        });
+
+        // ── Slider defaults ───────────────────────────────────────────────
+        const DEFAULTS = { f: 0.037, k: 0.060, speed: 4 };
+
+        function setF(val) {
+            f = val;
+            document.getElementById('fSlider').value = val;
+            document.getElementById('fVal').textContent = val.toFixed(4);
+        }
+        function setK(val) {
+            k = val;
+            document.getElementById('kSlider').value = val;
+            document.getElementById('kVal').textContent = val.toFixed(4);
+        }
+        function setSpeed(val) {
+            stepsPerFrame = val;
+            document.getElementById('speedSlider').value = val;
+            document.getElementById('speedVal').textContent = val;
+        }
+
+        // Check if f+k match any preset; if so, re-highlight it
+        function syncPresetHighlight() {
+            let matched = false;
+            document.querySelectorAll('[data-preset]').forEach(b => {
+                const p = presets[b.dataset.preset];
+                if (Math.abs(p.f - f) < 0.0005 && Math.abs(p.k - k) < 0.0005) {
+                    b.classList.add('active');
+                    matched = true;
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+            return matched;
+        }
+
+        // Sliders — input handlers
+        document.getElementById('fSlider').addEventListener('input', function () {
+            setF(parseFloat(this.value));
+            syncPresetHighlight();
+        });
+
+        document.getElementById('kSlider').addEventListener('input', function () {
+            setK(parseFloat(this.value));
+            syncPresetHighlight();
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', function () {
+            setSpeed(parseInt(this.value));
+        });
+
+        // ↺ Reset buttons — hover-reveal, single-click to restore default
+        document.getElementById('fReset').addEventListener('click', () => {
+            setF(DEFAULTS.f);
+            syncPresetHighlight();
+        });
+        document.getElementById('kReset').addEventListener('click', () => {
+            setK(DEFAULTS.k);
+            syncPresetHighlight();
+        });
+        document.getElementById('speedReset').addEventListener('click', () => {
+            setSpeed(DEFAULTS.speed);
+        });
+
+        // Double-click on sliders also resets to default
+        document.getElementById('fSlider').addEventListener('dblclick', () => {
+            setF(DEFAULTS.f); syncPresetHighlight();
+        });
+        document.getElementById('kSlider').addEventListener('dblclick', () => {
+            setK(DEFAULTS.k); syncPresetHighlight();
+        });
+        document.getElementById('speedSlider').addEventListener('dblclick', () => {
+            setSpeed(DEFAULTS.speed);
+        });
+
+        // ── Mouse / Touch interaction ──────────────────────────────────────
+        let isPainting = false;
+
+        function simCoords(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: ((clientX - rect.left) / rect.width)  * W,
+                y: ((clientY - rect.top)  / rect.height) * H,
+            };
+        }
+
+        function paint(clientX, clientY) {
+            const { x, y } = simCoords(clientX, clientY);
+            seed(x, y, 7);
+            if (!running) render();
+        }
+
+        canvas.addEventListener('mousedown',  e => { isPainting = true; paint(e.clientX, e.clientY); });
+        canvas.addEventListener('mousemove',  e => { if (isPainting) paint(e.clientX, e.clientY); });
+        canvas.addEventListener('mouseup',    () => isPainting = false);
+        canvas.addEventListener('mouseleave', () => isPainting = false);
+
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            isPainting = true;
+            paint(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (isPainting) paint(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => isPainting = false);
+
+        // ── Boot ──────────────────────────────────────────────────────────
+        reset();
+        render();
+    </script>
+</body>
+</html>

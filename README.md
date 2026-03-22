@@ -42,6 +42,16 @@ A stock market survival game with retro pixel aesthetics.
 - **Status | 状态**: ✅ Done
 - 🎮 **[Play Now | 立即游玩](https://rhzjswlzd.github.io/generative-programming/market-survival/)**
 
+### 5. Reaction-Diffusion | 反应扩散系统
+Gray-Scott reaction-diffusion simulation — watch biological patterns emerge from chemical equations.
+
+Gray-Scott 反应扩散系统 — 从化学方程中观察生物花纹的自发涌现。
+
+- **Model | 模型**: Gray-Scott (feed rate f, kill rate k)
+- **Patterns | 花纹**: Coral, cell division, maze, leopard spots
+- **Status | 状态**: ✅ Done
+- 🎮 **[Play Now | 立即游玩](https://rhzjswlzd.github.io/generative-programming/reaction-diffusion/)**
+
 ---
 
 ## 🛠️ Tech Stack | 技术栈
@@ -70,6 +80,8 @@ open index.html
 - [Wolfram's A New Kind of Science](https://www.wolframscience.com/)
 - [Conway's Game of Life - Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
 - [Langton's Ant - Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant)
+- [Gray-Scott Model - Wikipedia](https://en.wikipedia.org/wiki/Gray%E2%80%93Scott_model)
+- [Reaction-Diffusion Tutorial - Karl Sims](https://www.karlsims.com/rd.html)
 
 ---
 
